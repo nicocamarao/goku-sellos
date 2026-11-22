@@ -5423,7 +5423,9 @@ var em = of.map((e, t) => {
   tex.colorSpace = Ue, tex.generateMipmaps = !1, tex.minFilter = 1006, tex.magFilter = 1006, tex.anisotropy = 8, tex.needsUpdate = !0;
   let s = new ii(new Wr({
     map: tex,
-    depthTest: !1
+    depthTest: !0,
+    depthWrite: !1,
+    transparent: !0
   }));
   return s.position.set(0, 4.15, 0), s.scale.set(4.6, 1.72, 1), n.add(s), {
     g: n,
@@ -5450,7 +5452,7 @@ function skyLabel(text, x, y, z, parent) {
   g.fillStyle = `#183b46`, g.fillRect(0, 0, 1024, 256), g.strokeStyle = `#fff1cf`, g.lineWidth = 10, g.strokeRect(12, 12, 1000, 232), g.fillStyle = `#fff6dc`, g.font = `800 72px Trebuchet MS, Arial, sans-serif`, g.textAlign = `center`, g.textBaseline = `middle`, g.fillText(text, 512, 128);
   let tex = new wa(c);
   tex.colorSpace = Ue, tex.needsUpdate = !0;
-  let i = new ii(new Wr({ map: tex, depthTest: !1 }));
+  let i = new ii(new Wr({ map: tex, depthTest: !0, depthWrite: !1, transparent: !0 }));
   return i.position.set(x, y, z), i.scale.set(7.4, 1.85, 1), parent.add(i), i
 }
 function laySeg(a, b, w, h, mat, lift) {
@@ -6731,7 +6733,7 @@ function buildProps() {
   e.width = 512, e.height = 160;
   let t = e.getContext(`2d`), n = new wa(e);
   n.colorSpace = Ue;
-  let r = new ii(new Wr({ map: n, depthTest: !1, transparent: !0 }));
+  let r = new ii(new Wr({ map: n, depthTest: !0, depthWrite: !1, transparent: !0 }));
   r.position.set(0, 2.15, 0), r.scale.set(2.5, .78, 1), boxGroup.add(r), boxLabel = { ctx: t, tex: n }, paintBox(), layoutBalls(), makeGuide()
 }
 function worldSnap(e) {
