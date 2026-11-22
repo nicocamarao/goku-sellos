@@ -5463,7 +5463,7 @@ function buildSnake() {
   snakeArc = acc || 1, pts.forEach(e => e.s = e.d / snakeArc), snakePts = pts;
   let a = pts[pts.length - 2], b = pts[pts.length - 1], tx = b.x - a.x, tz = b.z - a.z, tl = Math.hypot(tx, tz) || 1;
   planet = { x: b.x + tx / tl * 8, y: b.y, z: b.z + tz / tl * 8, r: 12 };
-  snakeStones = [.04, .22, .4, .58, .76].map(m => {
+  snakeStones = [.018].map(m => {
     let p = pointAt(m);
     return { x: p.x + p.rx * 2.25, y: p.y, z: p.z + p.rz * 2.25 }
   });
@@ -6468,7 +6468,7 @@ function beginSnake(e) {
   if (Q !== `free`) return;
   closeSnakeAsk(), zone = `serpiente`, stoneSSJ = !1, snakeOnPlanet = 0, snakeSide = 0, snakeDone = activeSave && activeSave.snakeDone ? 1 : 0, snakeProg = e ? Math.max(0, Math.min(.99, activeSave && activeSave.snake || 0)) : 0, !e && activeSave && (activeSave.snake = 0, saveSnake());
   let t = pointAt(snakeProg), n = pointAt(Math.min(.999, snakeProg + .008));
-  Sp = t.x, Cp = t.z, snakeY = t.y, snakeProg > .9 && Math.hypot(Sp - planet.x, Cp - planet.z) < planet.r && (snakeOnPlanet = 1, Sp = planet.x, Cp = planet.z, snakeY = planet.y), Hf.rotation.y = Math.atan2(n.x - t.x, n.z - t.z), camYaw = Hf.rotation.y + Math.PI, Hf.position.set(Sp, 0, Cp), snakeGroup.position.y = -snakeY, snakeGroup.visible = !0, Qp.visible = !1, hidePortals(!0), ballsGroup && (ballsGroup.visible = !1), boxGroup && (boxGroup.visible = !1), shenMesh && (shenMesh.visible = !1), X(`#exit`).classList.remove(`hidden`), X(`#exit`).classList.add(`is-back`), X(`#exit`).textContent = `VOLVER`, X(`#hubInteract`).classList.add(`hidden`), X(`#levelGrid`).classList.add(`hidden`), X(`#questLabel`).textContent = snakeDone ? `CAMINO · SUPER SAIYAN` : `CAMINO DE LA SERPIENTE`, applyWalkForm(), sentX = sentZ = null, sentSSJ = -1, trackFree(), tm(e ? snakeDone ? `Seguís en el ${Math.round(snakeProg * 100)}%. Super Saiyan.` : `Seguís en el ${Math.round(snakeProg * 100)}%, sin Super Saiyan.` : `Camino de la serpiente. Las piedras amarillas te hacen Super Saiyan.`), um()
+  Sp = t.x, Cp = t.z, snakeY = t.y, snakeProg > .9 && Math.hypot(Sp - planet.x, Cp - planet.z) < planet.r && (snakeOnPlanet = 1, Sp = planet.x, Cp = planet.z, snakeY = planet.y), Hf.rotation.y = Math.atan2(n.x - t.x, n.z - t.z), camYaw = Hf.rotation.y + Math.PI, Hf.position.set(Sp, 0, Cp), snakeGroup.position.y = -snakeY, snakeGroup.visible = !0, Qp.visible = !1, hidePortals(!0), ballsGroup && (ballsGroup.visible = !1), boxGroup && (boxGroup.visible = !1), shenMesh && (shenMesh.visible = !1), X(`#exit`).classList.remove(`hidden`), X(`#exit`).classList.add(`is-back`), X(`#exit`).textContent = `VOLVER`, X(`#hubInteract`).classList.add(`hidden`), X(`#levelGrid`).classList.add(`hidden`), X(`#questLabel`).textContent = snakeDone ? `CAMINO · SUPER SAIYAN` : `CAMINO DE LA SERPIENTE`, applyWalkForm(), sentX = sentZ = null, sentSSJ = -1, trackFree(), tm(e ? snakeDone ? `Seguís en el ${Math.round(snakeProg * 100)}%. Super Saiyan.` : `Seguís en el ${Math.round(snakeProg * 100)}%, sin Super Saiyan.` : `Camino de la serpiente. La piedra amarilla, a la derecha, te hace Super Saiyan.`), um()
 }
 function leaveSnake() {
   if (zone !== `serpiente`) return;
