@@ -6100,6 +6100,21 @@ function spawnRemote() {
   }
 }
 
+function hearPlayer(e) {
+  if (!e || !e.id || e.id === freeId || Q !== `free`) return;
+  let at = +e.at || +e.pat || 0, t = remotes.get(e.id);
+  if (at && Date.now() - at > 2000) return;
+  if (!t) {
+    if ((e.zone || `claro`) !== zone) return;
+    try { t = spawnRemote(), remotes.set(e.id, t), t.wrapper.position.set(+e.x || 0, 0, +e.z || 0) } catch { return }
+  }
+  if (!at) { if (t.progAt) return } else if (t.progAt && at <= t.progAt) return;
+  at && (t.progAt = at), e.zone && (t.zone = e.zone), e.prog != null && (t.prog = +e.prog || 0), e.y != null && (t.pathY = +e.y || 0), e.ssj != null && (t.ssj = e.ssj ? 1 : 0), e.name && (t.name = String(e.name).slice(0, 24)), e.level != null && (t.level = Number(e.level) || 0), e.held != null && (t.held = Number(e.held) || 0), t.freshAt = performance.now();
+  if (t.zone === `serpiente`) {
+    let n = pointAt(Math.max(0, Math.min(1, +t.prog || 0)));
+    t.targetX = n.x, t.targetZ = n.z, t.pathY = n.y, t.movedAt = t.freshAt
+  }
+}
 function syncPresence() {
   if (!freeCh || Q !== `free`) return;
   let e = freeCh.presenceState(), t = new Set, n = 0;
@@ -6108,12 +6123,12 @@ function syncPresence() {
     if (!s) continue;
     applyWorld(s);
     if (r === freeId) continue;
-    n++, t.add(r);
+    n++, t.add(r), s.id = s.id || r, hearPlayer(s);
     let c = remotes.get(r);
     if (!c) continue;
-    c.level = Number(s.level) || 0, c.name = String(s.name || `Jugador`).slice(0, 24), c.held = Number(s.held) || 0, c.beamOn = s.beam || 0
+    c.level = Number(s.level) || 0, c.name = String(s.name || c.name || `Jugador`).slice(0, 24), c.held = Number(s.held) || 0, c.beamOn = s.beam || 0
   }
-  for (let [e, r] of remotes) t.has(e) || (df.remove(r.wrapper), remotes.delete(e));
+  for (let [e, r] of remotes) t.has(e) || (r.wrapper.removeFromParent(), remotes.delete(e));
   zone === `claro` && (X(`#questLabel`).textContent = `ESFERAS ★${myHeld()} · CAJA ${worldBox}/7`)
 }
 
@@ -6147,13 +6162,13 @@ function sendMove() {
   })
 }
 function dropRemotes() {
-  for (let e of remotes.values()) df.remove(e.wrapper);
+  for (let e of remotes.values()) e.wrapper.removeFromParent();
   remotes.clear(), syncNote = ``
 }
 function trackFree() {
   if (!(freeCh && Q === `free` && Hf)) return;
   let e = worldSnap(0);
-  e.name = playerName(), e.level = $.cleared, e.held = myHeld(), e.zone = zone, e.ssj = goingFast() ? 1 : 0, e.prog = snakeProg, e.y = snakeY, freeCh.track(e).catch(() => {})
+  e.name = playerName(), e.level = $.cleared, e.held = myHeld(), e.zone = zone, e.ssj = goingFast() ? 1 : 0, e.prog = snakeProg, e.y = snakeY, e.pat = Date.now(), freeCh.track(e).catch(() => {})
 }
 
 async function connectFree() {
@@ -6186,7 +6201,9 @@ async function connectFree() {
     }, ({
       payload: e
     }) => {
-      if (!e || e.id === freeId || Q !== `free` || !e.at || Date.now() - e.at > 350) return;
+      if (!e || e.id === freeId || Q !== `free`) return;
+      hearPlayer(e);
+      if (!e.at || Date.now() - e.at > 350) return;
       e.taken && applyWorld(e);
       let x = +(+e.x || 0).toFixed(2), z = +(+e.z || 0).toFixed(2), t = remotes.get(e.id);
       if (t && Math.hypot(x - t.targetX, z - t.targetZ) < .05 && (e.zone || `claro`) === (t.zone || `claro`)) return t.held = Number(e.held) || 0, t.name = String(e.name || t.name).slice(0, 24), t.level = Number(e.level) || t.level, t.ssj = e.ssj ? 1 : 0, t.prog = +e.prog || 0, t.pathY = +e.y || 0, e.beam && (t.beamUntil = performance.now() + 1500), t.rot = e.rot || t.rot;
@@ -6568,14 +6585,19 @@ function freeMove(e) {
   zone === `serpiente` ? snakeWalk(i, s, speed, e) : meadowWalk(i, s, e), snakeGroup && zone === `serpiente` && (snakeGroup.position.y = -snakeY), Hf.visible = !0, Hf.position.set(Sp, 0, Cp), Hf.rotation.z = 0, lp > 0 ? (lp = Math.max(0, lp - e), lp || sendBeam(0), rm(`fire`)) : (o && faceToward(i, s, e), rm(o ? `run` : `idle`)), Wf.update(e * (goingFast() ? 2.3 : 1)), Xf = Math.min(100, Xf + 14 * e), Yf = freeHp > 66 ? 3 : freeHp > 33 ? 2 : freeHp > 0 ? 1 : 0, zone === `serpiente` && (X(`#questLabel`).textContent = goingFast() ? `CAMINO · SUPER SAIYAN ×4` : `CAMINO DE LA SERPIENTE`), zone === `serpiente` && performance.now() - snakeSaveAt > 2000 && (snakeSaveAt = performance.now(), saveSnake());
   sweepRemotes(), tickProps(e), paintSnakeMeter();
   for (let t of remotes.values()) {
-    t.movedAt && performance.now() - t.movedAt > 280 && (t.targetX = t.wrapper.position.x, t.targetZ = t.wrapper.position.z, t.movedAt = 0);
     let same = (t.zone || `claro`) === zone;
-    same && !t.wrapper.visible && t.wrapper.position.set(t.targetX, zone === `serpiente` ? (t.pathY || 0) - snakeY : 0, t.targetZ), t.wrapper.visible = same;
     if (!same) {
-      t.mixer.update(e);
+      t.wrapper.visible = !1, t.mixer.update(e);
       continue
     }
-    t.wrapper.position.x = Nt.damp(t.wrapper.position.x, t.targetX, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, t.targetZ, 8, e), t.wrapper.position.y = zone === `serpiente` ? (t.pathY || 0) - snakeY : 0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil)
+    if (zone === `serpiente`) {
+      let p = pointAt(Math.max(0, Math.min(1, +t.prog || 0)));
+      t.wrapper.parent !== snakeGroup && snakeGroup.add(t.wrapper);
+      let far = Math.hypot(t.wrapper.position.x - p.x, t.wrapper.position.z - p.z);
+      far > 6 ? t.wrapper.position.set(p.x, p.y, p.z) : (t.wrapper.position.x = Nt.damp(t.wrapper.position.x, p.x, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, p.z, 8, e), t.wrapper.position.y = p.y), t.wrapper.visible = !0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil);
+      continue
+    }
+    t.movedAt && performance.now() - t.movedAt > 280 && (t.targetX = t.wrapper.position.x, t.targetZ = t.wrapper.position.z, t.movedAt = 0), t.wrapper.parent !== df && df.add(t.wrapper), t.wrapper.visible = !0, t.wrapper.position.x = Nt.damp(t.wrapper.position.x, t.targetX, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, t.targetZ, 8, e), t.wrapper.position.y = 0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil)
   }
   let a = performance.now();
   if (a < beamUntil && freeCh && (freeHitAcc += e) > .12) {
