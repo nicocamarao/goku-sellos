@@ -5272,6 +5272,8 @@ var freeHp = 100,
   sbClient = null,
   freeHitAcc = 0,
   freeSendAt = 0,
+  freeBeatAt = 0,
+  trackBusy = !1,
   camYaw = 0,
   camPitch = -.28,
   freePtrs = new Map;
@@ -6028,15 +6030,31 @@ function syncPresence() {
       liveLog(`falló el cuerpo ${i}: ${e && e.message || e}`);
       continue
     }
-    c.targetX = s.x || 0, c.targetZ = s.z || 0, c.rot = s.rot || 0, c.level = Number(s.level) || 0, c.name = String(s.name || `Jugador`).slice(0, 24), c.beamOn = s.beam || 0, o.push(`${i} x=${Number(s.x || 0).toFixed(1)} z=${Number(s.z || 0).toFixed(1)} nv=${s.level ?? `?`}`)
+    c.targetX = s.x || 0, c.targetZ = s.z || 0, c.rot = s.rot || 0, c.level = Number(s.level) || 0, c.name = String(s.name || `Jugador`).slice(0, 24), c.beamOn = s.beam || 0, (!c.movedAt || performance.now() - c.movedAt > 1500) && (c.targetX = s.x || 0, c.targetZ = s.z || 0, c.rot = s.rot || 0), o.push(`${i} x=${Number(s.x || 0).toFixed(1)} z=${Number(s.z || 0).toFixed(1)} nv=${s.level ?? `?`}`)
   }
   for (let [e, r] of remotes) t.has(e) || (df.remove(r.wrapper), remotes.delete(e), liveLog(`se fue ${String(e).slice(0, 8)}`));
   let l = `canal ${Object.keys(e).length}: ${o.join(` | `) || `nadie`}`;
   l !== syncNote && (syncNote = l, liveLog(l)), Q === `free` && (X(`#questLabel`).textContent = n ? `MUNDO LIBRE · ${n} CERCA` : `MUNDO LIBRE · SOLO`)
 }
 
-function trackFree() {
+function sendMove() {
   if (!(freeCh && Q === `free` && Hf)) return;
+  freeCh.send({
+    type: `broadcast`,
+    event: `move`,
+    payload: {
+      id: freeId,
+      x: +Sp.toFixed(2),
+      z: +Cp.toFixed(2),
+      rot: +Hf.rotation.y.toFixed(2),
+      level: $.cleared,
+      name: playerName()
+    }
+  })
+}
+function trackFree() {
+  if (!(freeCh && Q === `free` && Hf) || trackBusy) return;
+  trackBusy = !0;
   let e = {
     x: +Sp.toFixed(2),
     z: +Cp.toFixed(2),
@@ -6045,11 +6063,10 @@ function trackFree() {
     name: playerName()
   };
   freeCh.track(e).then(t => {
-    let n = Date.now();
-    if (t !== `ok`) return n - trackLogAt > 2000 && (trackLogAt = n, liveLog(`track FALLÓ ${t} id=${String(freeId).slice(0, 8)}`));
-    let r = `envié x=${e.x} z=${e.z} nv=${e.level} id=${String(freeId).slice(0, 8)}`;
-    r !== trackNote && n - trackLogAt > 4000 && (trackNote = r, trackLogAt = n, liveLog(r))
-  }).catch(e => liveLog(`track error ${e && e.message || e}`))
+    trackBusy = !1, t !== `ok` && liveLog(`track ${t} id=${String(freeId).slice(0, 8)}`)
+  }).catch(e => {
+    trackBusy = !1, liveLog(`track error ${e && e.message || e}`)
+  })
 }
 
 async function connectFree() {
@@ -6068,7 +6085,7 @@ async function connectFree() {
       },
       realtime: {
         params: {
-          eventsPerSecond: 2
+          eventsPerSecond: 10
         }
       }
     }), sbClient.realtime.accessToken = null, sbClient.realtime._isManualToken = () => !0, freeCh = sbClient.channel(`goku-mundo-libre`, {
@@ -6083,6 +6100,14 @@ async function connectFree() {
     }), freeCh.on(`presence`, {
       event: `sync`
     }, syncPresence), freeCh.on(`broadcast`, {
+      event: `move`
+    }, ({
+      payload: e
+    }) => {
+      if (!e || e.id === freeId || Q !== `free`) return;
+      let t = remotes.get(e.id);
+      t && (t.targetX = e.x || 0, t.targetZ = e.z || 0, t.rot = e.rot || 0, t.level = Number(e.level) || 0, t.name = String(e.name || `Jugador`).slice(0, 24), t.movedAt = performance.now())
+    }), freeCh.on(`broadcast`, {
       event: `hit`
     }, ({
       payload: e
@@ -6185,7 +6210,7 @@ function freeMove(e) {
       })
     }
   }
-  a - freeSendAt > 400 && (freeSendAt = a, trackFree()), placeFreeCam(e), um()
+  a - freeSendAt > 200 && (freeSendAt = a, sendMove()), a - freeBeatAt > 2000 && (freeBeatAt = a, trackFree()), placeFreeCam(e), um()
 }
 
 X(`#hubToggle`).onclick = () => {
