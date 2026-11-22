@@ -5164,13 +5164,20 @@ var Rf = e => globalThis.RUNNER_ASSETS?.[e] || e,
   Np = 0,
   Pp = !0,
   $ = qd(null);
+function readKeep(e) {
+  let t = document.cookie.match(new RegExp(`(?:^|; )${e}=([^;]*)`));
+  return t ? decodeURIComponent(t[1]) : localStorage.getItem(e)
+}
+function saveKeep(e, t) {
+  localStorage.setItem(e, t), document.cookie = `${e}=${encodeURIComponent(t)}; max-age=3153600000; path=/; SameSite=Lax`
+}
 try {
-  $ = qd(JSON.parse(localStorage.getItem(Ud))), dp = Number(localStorage.getItem(`goku-runner-best`) || 0)
+  $ = qd(JSON.parse(readKeep(Ud))), dp = Number(readKeep(`goku-runner-best`) || 0)
 } catch {}
 var SB_URL = `https://kidaqymftzoyqskkobnw.supabase.co`,
   SB_KEY = `sb_publishable_Uogn2aiVD930DvKtF8qcHA_IbCxgiUa`,
-  freeId = sessionStorage.getItem(`goku-tab`);
-freeId || (freeId = crypto.randomUUID(), sessionStorage.setItem(`goku-tab`, freeId));
+  freeId = readKeep(`goku-pid`);
+freeId || (freeId = crypto.randomUUID(), saveKeep(`goku-pid`, freeId));
 var freeHp = 100,
   beamUntil = 0,
   beamPower = 1,
@@ -5311,7 +5318,7 @@ function tm(e) {
 
 function nm() {
   try {
-    localStorage.setItem(Ud, JSON.stringify($)), Pp = !0
+    saveKeep(Ud, JSON.stringify($)), Pp = !0
   } catch {
     Pp = !1
   }
@@ -5533,7 +5540,7 @@ function Em() {
 function Dm(e) {
   dp = Math.max(dp, Jf);
   try {
-    localStorage.setItem(`goku-runner-best`, String(Math.floor(dp)))
+    saveKeep(`goku-runner-best`, String(Math.floor(dp)))
   } catch {}
   mm(e + ` Volviste al santuario; puedes intentar de nuevo el portal abierto.`)
 }
