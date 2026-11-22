@@ -5385,7 +5385,7 @@ for (let e = 0; e < 60; e++) {
 }
 var peaks = [{ x: -15, z: 2, r: 5.8, h: 7.2 }, { x: 16, z: -6, r: 5.3, h: 6.6 }];
 for (let p of peaks) {
-  let cone = Z(new Ma(p.r, p.h, 14), gf(`#6f8f5c`), p.x, p.h / 2, p.z, Qp);
+  let cone = Z(new Aa(0, p.r, p.h, 14), gf(`#6f8f5c`), p.x, p.h / 2, p.z, Qp);
   cone.castShadow = !0, cone.receiveShadow = !0, Z(new Aa(p.r * .24, p.r * .24, .34, 12), gf(`#e4efe0`), p.x, p.h - .17, p.z, Qp)
 }
 var gatePosts = [];
