@@ -5281,6 +5281,7 @@ var freeHp = 100,
   sentSSJ = 0,
   sentFly = 0,
   flyOn = 0,
+  flyClimb = 0,
   flyY = 0,
   jumpV = 0,
   jumpBtn = 0,
@@ -5359,7 +5360,7 @@ var Zp = Z(new La(1.15, 16, 12), new di({
   }), 0, 0, 0, Xp),
   Qp = new An;
 df.add(Qp);
-var $p = Z(new Aa(24, 25, .35, 64), gf(`#7da060`), 0, -.22, 0, Qp);
+var $p = Z(new Aa(38, 39, .4, 80), gf(`#7da060`), 0, -.22, 0, Qp);
 $p.receiveShadow = !0, Z(new Aa(5.7, 6, .16, 48), gf(`#d0c0a0`), 0, -.02, 1, Qp).receiveShadow = !0;
 for (let e of of) {
   let t = e.x,
@@ -5367,10 +5368,12 @@ for (let e of of) {
     r = Z(new Oa(1.5, .08, Math.hypot(t, n)), gf(`#c3b99b`), e.x / 2, .01, (e.z + 4) / 2, Qp);
   r.rotation.y = Math.atan2(t, n), r.receiveShadow = !0
 }
+var outerPeaks = [];
 for (let e = 0; e < 28; e++) {
-  let t = e * Math.PI * 2 / 28,
-    n = 20 + e % 3;
-  Z(new Ma(1 + e % 3 * .25, 0), vf, Math.sin(t) * n, .5, Math.cos(t) * n, Qp)
+  let ang = e * Math.PI * 2 / 28, rad = 31 + (e % 3) * .8, h = 8 + (e % 5) * 1.15, r = 2.7, x = Math.sin(ang) * rad, z = Math.cos(ang) * rad;
+  outerPeaks.push({ x, z, r, h });
+  let cone = Z(new Aa(0, r, h, 12), gf(`#6f8f5c`), x, h / 2, z, Qp);
+  cone.castShadow = !0, cone.receiveShadow = !0, Z(new Aa(r * .28, r * .28, .32, 10), gf(`#e4efe0`), x, h - .16, z, Qp)
 }
 for (let e = 0; e < 32; e++) {
   let t = e * Math.PI * 2 / 32,
@@ -5383,10 +5386,10 @@ for (let e = 0; e < 60; e++) {
     n = 8 + e % 11 * .95;
   Z(new Ma(.28 + e % 3 * .12, 0), yf[e % 3], Math.sin(t) * n, .18, Math.cos(t) * n, Qp).scale.set(1.4, .6, 1)
 }
-var peaks = [{ x: -15, z: 2, r: 5.8, h: 7.2 }, { x: 16, z: -6, r: 5.3, h: 6.6 }];
+var peaks = [{ x: -9, z: -6, r: 3.8, h: 8 }, { x: 11, z: -2, r: 3.6, h: 7.4 }];
 for (let p of peaks) {
-  let cone = Z(new Aa(0, p.r, p.h, 14), gf(`#6f8f5c`), p.x, p.h / 2, p.z, Qp);
-  cone.castShadow = !0, cone.receiveShadow = !0, Z(new Aa(p.r * .24, p.r * .24, .34, 12), gf(`#e4efe0`), p.x, p.h - .17, p.z, Qp)
+  let cone = Z(new Aa(0, p.r, p.h, 14), gf(`#7d9a62`), p.x, p.h / 2, p.z, Qp);
+  cone.castShadow = !0, cone.receiveShadow = !0, Z(new Aa(p.r * .28, p.r * .28, .34, 12), gf(`#e4efe0`), p.x, p.h - .17, p.z, Qp)
 }
 var gatePosts = [];
 for (let e of of)
@@ -6340,14 +6343,15 @@ var arena = null, duelFx = null, duelFighter = null, duel = null, duelHome = nul
 var MOVE_NAME = { kame: `KAME`, ki: `CARGAR KI`, def: `DEFENSA`, punch: `PUÑO` };
 function groundY(x, z) {
   let h = null;
-  Math.hypot(x, z) < 23.2 && (h = 0);
-  for (let p of peaks) {
-    let d = Math.hypot(x - p.x, z - p.z);
-    if (d < p.r) {
-      let cap = p.r * .24, k = d <= cap ? p.h : p.h * (1 - (d - cap) / (p.r - cap));
-      h = h == null ? k : Math.max(h, k)
+  Math.hypot(x, z) < 36.5 && (h = 0);
+  for (let list of [peaks, outerPeaks])
+    for (let p of list) {
+      let d = Math.hypot(x - p.x, z - p.z);
+      if (d < p.r) {
+        let cap = p.r * .28, k = d <= cap ? p.h : p.h * (1 - (d - cap) / (p.r - cap));
+        h = h == null ? k : Math.max(h, k)
+      }
     }
-  }
   return h
 }
 function tryMeadowStep(nx, nz) {
@@ -6359,25 +6363,45 @@ function tryMeadowStep(nx, nz) {
   return Sp = nx, Cp = nz, !0
 }
 function stepAir(e) {
-  if (zone === `serpiente`) return flyOn ? (jumpV = 0, jumpRise = 0, flyY += (8 - flyY) * Math.min(1, e * 4.2)) : (jumpRise || jumpV || flyY > 0) && ((jumpBtn || Rp[` `]) && jumpRise && flyY < 16 && (jumpV = Math.min(Math.max(jumpV, 15), Math.sqrt(Math.max(0, 44 * (16 - flyY))))), flyY >= 16 && (jumpRise = 0, jumpV = Math.min(jumpV, 0)), jumpV -= 22 * e, flyY = Math.max(0, flyY + jumpV * e), flyY || (jumpV = 0, jumpRise = 0));
-  let g = groundY(Sp, Cp);
   if (flyOn) {
-    jumpV = 0, jumpRise = 0;
-    let target = g == null ? 8 : Math.max(8, g + 1.35);
-    flyY += (target - flyY) * Math.min(1, e * 4.2);
+    jumpV = 0, jumpRise = 0, flyY = Math.min(120, flyY + flyClimb * e);
+    if (zone === `serpiente`) flyY = Math.max(0, flyY);
+    else {
+      let g = groundY(Sp, Cp);
+      g != null && flyY < g + .35 && (flyY = g + .35), g == null && flyY < 0 && (flyY = 0)
+    }
     return
   }
+  if (zone === `serpiente`) return (jumpRise || jumpV || flyY > 0) && ((jumpBtn || Rp[` `]) && jumpRise && flyY < 16 && (jumpV = Math.min(Math.max(jumpV, 15), Math.sqrt(Math.max(0, 44 * (16 - flyY))))), flyY >= 16 && (jumpRise = 0, jumpV = Math.min(jumpV, 0)), jumpV -= 22 * e, flyY = Math.max(0, flyY + jumpV * e), flyY || (jumpV = 0, jumpRise = 0));
+  let g = groundY(Sp, Cp);
   if (g == null) return;
   let air = flyY - g;
   if (jumpRise || jumpV || air > .04) {
     (jumpBtn || Rp[` `]) && jumpRise && air < 16 && (jumpV = Math.min(Math.max(jumpV, 15), Math.sqrt(Math.max(0, 44 * (16 - air))))), air >= 16 && (jumpRise = 0, jumpV = Math.min(jumpV, 0)), jumpV -= 22 * e, flyY = Math.max(g, flyY + jumpV * e), flyY <= g + .001 && (flyY = g, jumpV = 0, jumpRise = 0)
   } else flyY = g
 }
-function peakBalls(round) {
-  let a = Math.abs(Math.sin(round * 12.9898 + 3.1) * 43758.5453), b = Math.abs(Math.sin(round * 78.233 + 9.2) * 43758.5453);
-  a = Math.floor((a - Math.floor(a)) * 7) % 7, b = Math.floor((b - Math.floor(b)) * 7) % 7;
-  a === b && (b = (b + 3) % 7);
-  return [a, b]
+function hash01(s) {
+  let n = Math.sin(s) * 43758.5453;
+  return n - Math.floor(n)
+}
+function spherePlan(round) {
+  let ids = [0, 1, 2, 3, 4, 5, 6];
+  for (let i = 6; i > 0; i--) {
+    let j = Math.floor(hash01(round * 17.17 + i * 3.31) * (i + 1)), tmp = ids[i];
+    ids[i] = ids[j], ids[j] = tmp
+  }
+  return { inner: [ids[0], ids[1]], outerBall: ids[2], outerPeak: Math.floor(hash01(round * 9.13 + 2.2) * outerPeaks.length), floor: ids.slice(3) }
+}
+function floorSpot(round, k) {
+  for (let t = 0; t < 14; t++) {
+    let a = hash01(round * 12.9898 + k * 78.233 + t * 1.7) * Math.PI * 2, rad = 3.2 + hash01(round * 4.2 + k * 9.1 + t) * 8.2, x = Math.cos(a) * rad, z = Math.sin(a) * rad;
+    if (Math.hypot(x - BOX_X, z - BOX_Z) < 3.2) continue;
+    let bad = !1;
+    for (let p of peaks)
+      if (Math.hypot(x - p.x, z - p.z) < p.r + 1.3) bad = !0;
+    if (!bad) return { x, z, y: .85 }
+  }
+  return { x: -3 - k * 1.4, z: 1.5, y: .85 }
 }
 function makeGuide() {
   if (guideSprite || !Qp) return;
@@ -6685,19 +6709,13 @@ function paintBox() {
 }
 function layoutBalls() {
   if (!ballsGroup) return;
-  let pair = peakBalls(worldRound);
+  let plan = spherePlan(worldRound), out = outerPeaks[plan.outerPeak];
   ballsGroup.children.forEach((e, t) => {
-    let n = ballSpot(worldRound, t);
-    n.y = .85;
-    if (t === pair[0]) n = { x: peaks[0].x, z: peaks[0].z, y: peaks[0].h + .95 };
-    else if (t === pair[1]) n = { x: peaks[1].x, z: peaks[1].z, y: peaks[1].h + .95 };
-    else for (let p of peaks) {
-      let dx = n.x - p.x, dz = n.z - p.z, d = Math.hypot(dx, dz);
-      if (d < p.r + .6) {
-        let k = (p.r + 1.2) / Math.max(.25, d);
-        n.x = Math.max(-16, Math.min(16, p.x + dx * k)), n.z = Math.max(-14, Math.min(12, p.z + dz * k))
-      }
-    }
+    let n;
+    if (t === plan.inner[0]) n = { x: peaks[0].x, z: peaks[0].z, y: peaks[0].h + .95 };
+    else if (t === plan.inner[1]) n = { x: peaks[1].x, z: peaks[1].z, y: peaks[1].h + .95 };
+    else if (t === plan.outerBall) n = { x: out.x, z: out.z, y: out.h + .95 };
+    else n = floorSpot(worldRound, t);
     e.userData.x = n.x, e.userData.z = n.z, e.userData.y = n.y, e.visible = !worldTaken[t]
   }), paintBox()
 }
@@ -6885,8 +6903,10 @@ function meadowWalk(ix, iz, dt) {
   let speed = snakeDone ? 28.8 : 7.2;
   snakeY = 0, snakeGroup && (snakeGroup.position.y = 0);
   let nx = Sp + ix * speed * dt, nz = Cp + iz * speed * dt;
-  if (flyOn) Sp = Nt.clamp(nx, -26, 26), Cp = Nt.clamp(nz, -24, 22);
-  else tryMeadowStep(nx, nz) || tryMeadowStep(nx, Cp) || tryMeadowStep(Sp, nz);
+  if (flyOn) {
+    let d = Math.hypot(nx, nz);
+    d > 36.8 && (nx = nx / d * 36.8, nz = nz / d * 36.8), Sp = nx, Cp = nz
+  } else tryMeadowStep(nx, nz) || tryMeadowStep(nx, Cp) || tryMeadowStep(Sp, nz);
   let near = Math.hypot(Sp - of[0].x, Cp - of[0].z), nearBulma = $d($) && Math.hypot(Sp - 6, Cp - 4) < 2.6, gd = Math.hypot(Sp - snakeGate.x, Cp - snakeGate.z);
   near > 3.4 && (gridLatch = !1), X(`#hubInteract`).classList.toggle(`hidden`, snakeAskOn || near >= 2.7 && !nearBulma), X(`#hubInteract`).textContent = near < 2.7 ? `ELEGIR NIVEL` : `HABLAR CON BULMA`, !snakeAskOn && near < .95 && openGrid(), gd > 4.8 && (snakeLatch = !1, snakeAskOn && closeSnakeAsk()), !snakeLatch && !snakeAskOn && gd < 2.15 && offerSnake()
 }
@@ -6976,6 +6996,7 @@ function freeMove(e) {
     s = -Math.cos(camYaw) * n - Math.sin(camYaw) * t,
     o = r > .05;
   let speed = goingFast() ? 28.8 : 7.2;
+  flyClimb = flyOn ? n * Math.sin(camPitch + .28) * speed : 0;
   zone === `serpiente` ? snakeWalk(i, s, speed, e) : meadowWalk(i, s, e), snakeGroup && zone === `serpiente` && (snakeGroup.position.y = -snakeY), stepAir(e), Hf.visible = !0, Hf.position.set(Sp, flyY, Cp), Hf.rotation.z = 0, lp > 0 ? (lp = Math.max(0, lp - e), lp || sendBeam(0), rm(`fire`)) : (o && faceToward(i, s, e), rm(o ? `run` : `idle`)), Wf.update(e * (goingFast() ? 2.3 : 1)), Xf = Math.min(100, Xf + 14 * e), Yf = freeHp > 66 ? 3 : freeHp > 33 ? 2 : freeHp > 0 ? 1 : 0, zone === `serpiente` && (X(`#questLabel`).textContent = goingFast() ? `CAMINO · SUPER SAIYAN ×4` : `CAMINO DE LA SERPIENTE`), zone === `serpiente` && performance.now() - snakeSaveAt > 2000 && (snakeSaveAt = performance.now(), saveSnake());
   sweepRemotes(), tickProps(e), tickGuide(), paintSnakeMeter();
   for (let t of remotes.values()) {
