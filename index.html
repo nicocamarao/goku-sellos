@@ -6879,7 +6879,7 @@ function sweepRemotes() {
 
 
 function formRank(f) {
-  let i = FORMS.indexOf(f || `goku`);
+  let i = (FORMS || [`goku`, `ssj`, `ssj2`, `ssj3`, `god`, `blue`, `ultra`]).indexOf(f || `goku`);
   return i < 0 ? 0 : i
 }
 function activeForm() {
@@ -7162,7 +7162,7 @@ function freeMove(e) {
   let speed = formSpeed();
   flyClimb = flyOn ? n * Math.sin(camPitch + .28) * speed : 0;
   zone === `serpiente` ? snakeWalk(i, s, speed, e) : meadowWalk(i, s, e), snakeGroup && zone === `serpiente` && (snakeGroup.position.y = -snakeY), stepAir(e), Hf.visible = !0, Hf.position.set(Sp, flyY, Cp), Hf.rotation.z = 0, lp > 0 ? (lp = Math.max(0, lp - e), lp || sendBeam(0), rm(`fire`)) : (o && faceToward(i, s, e), rm(o ? `run` : `idle`)), Wf.update(e * Math.min(3.4, 1 + formRank(walkForm) * .4)), Xf = Math.min(100, Xf + 14 * e), gp = Math.max(0, gp - e), _p = Math.max(0, _p - e), vp = Math.max(0, vp - e), tickAura(e), Yf = freeHp > 66 ? 3 : freeHp > 33 ? 2 : freeHp > 0 ? 1 : 0, zone === `serpiente` && (X(`#questLabel`).textContent = (snakeLeg === 2 ? `CAMINO LARGO` : `CAMINO`) + ` · ` + ({ goku: `BASE`, ssj: `SSJ ×4`, ssj2: `SSJ2`, ssj3: `SSJ3`, god: `DIOS`, blue: `AZUL`, ultra: `ULTRA` }[walkForm] || `BASE`)), zone === `serpiente` && performance.now() - snakeSaveAt > 2000 && (snakeSaveAt = performance.now(), saveSnake());
-  sweepRemotes(), tickProps(e), tickGuide(), paintSnakeMeter(), um();
+  sweepRemotes(), tickProps(e), tickGuide(), paintSnakeMeter();
   for (let t of remotes.values()) {
     dressRemote(t);
     let same = (t.zone || `claro`) === zone;
