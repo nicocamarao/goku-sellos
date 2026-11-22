@@ -5295,6 +5295,8 @@ var freeHp = 100,
   trackBusy = !1,
   camYaw = 0,
   camPitch = -.28,
+  camDist = 5.7,
+  pinchDist = 0,
   freePtrs = new Map;
 var Fp = [],
   Ip = [],
@@ -5904,6 +5906,10 @@ uf.addEventListener(`contextmenu`, e => e.preventDefault()), uf.addEventListener
       sy: e.clientY,
       look: e.button === 2 || e.clientX >= innerWidth * .5
     });
+    if (freePtrs.size >= 2) {
+      let t = [...freePtrs.values()];
+      pinchDist = Math.hypot(t[0].x - t[1].x, t[0].y - t[1].y)
+    }
     try {
       uf.setPointerCapture(e.pointerId)
     } catch {}
@@ -5921,7 +5927,13 @@ uf.addEventListener(`contextmenu`, e => e.preventDefault()), uf.addEventListener
   if (Q === `free`) {
     let t = freePtrs.get(e.pointerId);
     if (!t) return;
-    t.look ? (camYaw -= (e.clientX - t.x) * .0055, camPitch = Nt.clamp(camPitch - (e.clientY - t.y) * .0042, -1.05, .42)) : (Ep.x = Nt.clamp((e.clientX - t.sx) / 52, -1, 1), Ep.z = Nt.clamp((e.clientY - t.sy) / 52, -1, 1), X(`#knob`).style.transform = `translate(${Ep.x*20}px,${Ep.z*20}px)`), t.x = e.clientX, t.y = e.clientY;
+    if (freePtrs.size >= 2) {
+      t.x = e.clientX, t.y = e.clientY;
+      let n = [...freePtrs.values()], r = Math.hypot(n[0].x - n[1].x, n[0].y - n[1].y);
+      pinchDist > 12 && (camDist = Nt.clamp(camDist - (r - pinchDist) * .02, 2.4, 16)), pinchDist = r;
+      return
+    }
+    t.look ? (camYaw -= (e.clientX - t.x) * .0055, camPitch = Nt.clamp(camPitch - (e.clientY - t.y) * .004, -1.25, 1.2)) : (Ep.x = Nt.clamp((e.clientX - t.sx) / 52, -1, 1), Ep.z = Nt.clamp((e.clientY - t.sy) / 52, -1, 1), X(`#knob`).style.transform = `translate(${Ep.x*20}px,${Ep.z*20}px)`), t.x = e.clientX, t.y = e.clientY;
     return
   }
   zm && zm.id === e.pointerId && (Q === `hub` ? (Ep = {
@@ -5932,6 +5944,7 @@ uf.addEventListener(`contextmenu`, e => e.preventDefault()), uf.addEventListener
 
 function Bm(e) {
   e && e.pointerId != null && freePtrs.delete(e.pointerId);
+  freePtrs.size < 2 && (pinchDist = 0);
   let t = [...freePtrs.values()].some(e => !e.look);
   if (Q === `free`) return t || (Ep = {
     x: 0,
@@ -6567,10 +6580,13 @@ function faceToward(t, n, e) {
 }
 
 function placeFreeCam(e) {
-  let t = 5.7,
+  let t = camDist,
     n = Math.cos(camPitch),
-    r = new H(Sp + Math.sin(camYaw) * t * n, Math.max(.9, 1.55 - Math.sin(camPitch) * t), Cp + Math.cos(camYaw) * t * n);
-  pf.position.lerp(r, 1 - Math.exp(-e * 8)), pf.lookAt(Sp, 1.15, Cp)
+    i = 1.55 - Math.sin(camPitch) * t,
+    a = 1.15;
+  camPitch > .2 ? (i = Math.max(.4, i), a = 1.15 + Math.sin(camPitch - .2) * t * 1.45) : i = Math.max(.9, i);
+  let r = new H(Sp + Math.sin(camYaw) * t * n, i, Cp + Math.cos(camYaw) * t * n);
+  pf.position.lerp(r, 1 - Math.exp(-e * 8)), pf.lookAt(Sp, a, Cp)
 }
 
 function freeMove(e) {
