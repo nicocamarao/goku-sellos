@@ -5977,12 +5977,14 @@ function spawnRemote() {
     transparent: !0
   }));
   s.position.set(0, 2.7, 0), s.scale.set(3.15, .5, 1), t.add(s); let bubble = makeBubble(); t.add(bubble.sprite);
-  let c = Z(new Aa(.12, .18, 14, 8), new di({
-    color: `#7ee7ff`,
+  let c = Z(new Aa(.18, .32, 16, 12), new di({
+    color: `#8fd6ff`,
     transparent: !0,
-    opacity: .85
-  }), 0, 1.15, 7, t);
-  c.rotation.x = -Math.PI / 2, c.visible = !1, Z(new ka(.9, 28), new di({
+    opacity: .92,
+    blending: 2,
+    depthWrite: !1
+  }), 0, 1.12, 8.45, t);
+  c.rotation.x = Math.PI / 2, c.visible = !1, Z(new ka(.9, 28), new di({
     color: `#ffe14a`,
     emissive: `#ffe14a`,
     emissiveIntensity: .9
@@ -5999,6 +6001,7 @@ function spawnRemote() {
     targetZ: 0,
     rot: 0,
     beamOn: 0,
+    beamUntil: 0,
     held: 0,
     bubble,
     say: ``,
@@ -6038,7 +6041,14 @@ function sendMove() {
       rot: +Hf.rotation.y.toFixed(2),
       level: $.cleared,
       name: playerName(),
-      held: myHeld()
+      held: myHeld(),
+      beam: performance.now() < beamUntil ? 1 : 0,
+      round: worldRound,
+      box: worldBox,
+      taken: worldTaken.map(t => t ? t.id : ``),
+      takenAt: worldTaken.map(t => t ? t.at : 0),
+      worldAt,
+      shenAt
     }
   })
 }
@@ -6083,15 +6093,16 @@ async function connectFree() {
       payload: e
     }) => {
       if (!e || e.id === freeId || Q !== `free` || !e.at || Date.now() - e.at > 350) return;
+      e.taken && applyWorld(e);
       let x = +(+e.x || 0).toFixed(2), z = +(+e.z || 0).toFixed(2), t = remotes.get(e.id);
-      if (t && Math.hypot(x - t.targetX, z - t.targetZ) < .05) return;
+      if (t && Math.hypot(x - t.targetX, z - t.targetZ) < .05) return t.held = Number(e.held) || 0, t.name = String(e.name || t.name).slice(0, 24), t.level = Number(e.level) || t.level, e.beam && (t.beamUntil = performance.now() + 1500), t.rot = e.rot || t.rot;
       if (t && t.seenAt && e.at <= t.seenAt) return;
       if (!t) try {
         t = spawnRemote(), remotes.set(e.id, t), t.wrapper.position.set(x, 0, z)
       } catch {
         return
       }
-      t.seenAt = e.at, t.movedAt = t.freshAt = performance.now(), t.targetX = x, t.targetZ = z, t.rot = e.rot || 0, t.level = Number(e.level) || 0, t.name = String(e.name || `Jugador`).slice(0, 24), t.held = Number(e.held) || 0
+      t.seenAt = e.at, t.movedAt = t.freshAt = performance.now(), t.targetX = x, t.targetZ = z, t.rot = e.rot || 0, t.level = Number(e.level) || 0, t.name = String(e.name || `Jugador`).slice(0, 24), t.held = Number(e.held) || 0, e.beam && (t.beamUntil = performance.now() + 1500)
     }), freeCh.on(`broadcast`, {
       event: `hit`
     }, ({
@@ -6105,9 +6116,11 @@ async function connectFree() {
           t = 2 + Math.random() * 3;
         Sp = Math.cos(e) * t, Cp = 1 + Math.sin(e) * t * .7, tm(`Te alcanzó un Kamehameha. Renacés en el claro.`)
       }
-    }), freeCh.on(`broadcast`, { event: `grab` }, ({ payload: e }) => {
-      e && e.id !== freeId && e.round === worldRound && claimBall(e.i, e.id, e.at)
-    }), freeCh.on(`broadcast`, { event: `world` }, ({ payload: e }) => applyWorld(e)), freeCh.on(`broadcast`, { event: `chat` }, ({ payload: e }) => {
+    }), freeCh.on(`broadcast`, { event: `world` }, ({ payload: e }) => applyWorld(e)), freeCh.on(`broadcast`, { event: `beam` }, ({ payload: e }) => {
+      if (!e || e.id === freeId || Q !== `free`) return;
+      let t = remotes.get(e.id);
+      t && (t.beamUntil = e.on ? performance.now() + 1500 : 0, e.rot != null && (t.rot = e.rot))
+    }), freeCh.on(`broadcast`, { event: `chat` }, ({ payload: e }) => {
       if (!e || e.id === freeId || Q !== `free` || !e.text || !e.at || Date.now() - e.at > 8000) return;
       let t = remotes.get(e.id);
       t && (t.say = String(e.text).slice(0, 80), t.sayUntil = performance.now() + 7000, t.bubble && (t.bubble.text = ``))
@@ -6141,7 +6154,7 @@ function openGrid() {
 }
 
 
-var worldRound = 0, worldBox = 0, worldAt = 0, worldTaken = [null, null, null, null, null, null, null], sentX = null, sentZ = null, BOX_X = 0, BOX_Z = 9, ballsGroup = null, boxGroup = null, boxLabel = null, shenMesh = null, shenUntil = 0, shenLoading = !1, mySay = ``, mySayUntil = 0, myBubble = null;
+var worldRound = 0, worldBox = 0, worldAt = 0, worldTaken = [null, null, null, null, null, null, null], sentX = null, sentZ = null, BOX_X = 0, BOX_Z = 9, ballsGroup = null, boxGroup = null, boxLabel = null, shenMesh = null, shenUntil = 0, shenAt = 0, seenShen = 0, shenLoading = !1, mySay = ``, mySayUntil = 0, myBubble = null;
 function myHeld() {
   let n = 0;
   for (let e of worldTaken) e && e.id === freeId && n++;
@@ -6201,7 +6214,7 @@ function paintSay(e, t, n) {
 function paintBox() {
   if (!boxLabel) return;
   let e = boxLabel.ctx;
-  e.clearRect(0, 0, 512, 160), e.fillStyle = `#102f42e6`, roundBox(e, 16, 16, 480, 128, 24), e.fill(), e.fillStyle = `#fff6dc`, e.font = `800 40px Arial, sans-serif`, e.textAlign = `center`, e.textBaseline = `middle`, e.fillText(`DEJAR ESFERAS`, 256, 58), e.fillStyle = `#ffe14a`, e.font = `800 34px Arial, sans-serif`, e.fillText(`${worldBox} / 7`, 256, 108), boxLabel.tex.needsUpdate = !0
+  e.clearRect(0, 0, 512, 160), e.fillStyle = `#102f42e6`, roundBox(e, 16, 16, 480, 128, 24), e.fill(), e.fillStyle = `#fff6dc`, e.font = `800 40px Arial, sans-serif`, e.textAlign = `center`, e.textBaseline = `middle`, e.fillText(`CAJA`, 256, 52), e.fillStyle = `#ffe14a`, e.font = `800 54px Arial, sans-serif`, e.fillText(`${worldBox}/7`, 256, 112), boxLabel.tex.needsUpdate = !0
 }
 function layoutBalls() {
   if (!ballsGroup) return;
@@ -6226,14 +6239,29 @@ function buildProps() {
   r.position.set(0, 2.15, 0), r.scale.set(2.5, .78, 1), boxGroup.add(r), boxLabel = { ctx: t, tex: n }, paintBox(), layoutBalls()
 }
 function worldSnap(e) {
-  return { round: worldRound, box: worldBox, taken: worldTaken.map(e => e ? e.id : ``), at: worldTaken.map(e => e ? e.at : 0), worldAt, shen: e ? 1 : 0 }
+  return { round: worldRound, box: worldBox, taken: worldTaken.map(t => t ? t.id : ``), takenAt: worldTaken.map(t => t ? t.at : 0), worldAt, shenAt, shen: e || shenAt && Date.now() - shenAt < 14000 ? 1 : 0 }
 }
 function applyWorld(e) {
-  if (!e || !e.worldAt || e.worldAt <= worldAt) return;
-  worldAt = e.worldAt, worldRound = e.round | 0, worldBox = e.box | 0, worldTaken = [0, 1, 2, 3, 4, 5, 6].map(t => {
-    let n = e.taken && e.taken[t];
-    return n ? { id: n, at: e.at && e.at[t] || e.worldAt } : null
-  }), e.shen && showShen(), layoutBalls()
+  if (!e || !e.taken) return;
+  let n = e.takenAt || (Array.isArray(e.at) ? e.at : null);
+  if ((e.round | 0) > worldRound) {
+    worldRound = e.round | 0, worldAt = e.worldAt || Date.now(), worldTaken = [0, 1, 2, 3, 4, 5, 6].map(t => {
+      let r = e.taken[t];
+      return r ? { id: r, at: n && n[t] || worldAt } : null
+    }), worldBox = worldTaken.filter(t => t && t.id === `box`).length, e.shenAt && showShen(e.shenAt), layoutBalls();
+    return
+  }
+  if ((e.round | 0) < worldRound) return;
+  let r = !1;
+  for (let t = 0; t < 7; t++) {
+    let i = e.taken[t], a = n && n[t] || e.worldAt || 0, o = worldTaken[t];
+    if (!i) continue;
+    if (i === `box`) {
+      if (!o || o.id !== `box`) worldTaken[t] = { id: `box`, at: a }, r = !0
+    } else if (!o || o.id !== `box` && a < o.at) worldTaken[t] = { id: i, at: a }, r = !0
+  }
+  let i = worldTaken.filter(t => t && t.id === `box`).length;
+  i !== worldBox && (worldBox = i, r = !0), e.shenAt && showShen(e.shenAt), r && (worldAt = Math.max(worldAt, e.worldAt || 0), layoutBalls())
 }
 function claimBall(e, t, n) {
   if (e < 0 || e > 6) return;
@@ -6248,8 +6276,10 @@ function giveBalls() {
   let t = Date.now(), n = e.length >= 7 || worldBox + e.length >= 7;
   n ? (worldRound++, worldBox = 0, worldTaken = [null, null, null, null, null, null, null], worldAt = t, showShen(), tm(`¡Las siete esferas llamaron a Shenlong!`)) : (e.forEach(e => worldTaken[e] = { id: `box`, at: t }), worldBox += e.length, worldAt = t, tm(`Dejaste ${e.length}. En la caja hay ${worldBox}.`)), liveSend(`world`, worldSnap(n)), trackFree(), layoutBalls(), lm(`orb`)
 }
-function showShen() {
-  shenUntil = performance.now() + 14000, ensureShen(), shenMesh && (shenMesh.visible = !0, shenMesh.position.set(BOX_X, -8, BOX_Z + 2.4))
+function showShen(e) {
+  e = e || Date.now();
+  if (seenShen === e) return;
+  seenShen = e, shenAt = e, shenUntil = performance.now() + 14000, ensureShen(), shenMesh && (shenMesh.visible = !0, shenMesh.position.set(BOX_X, -8, BOX_Z + 2.4))
 }
 async function ensureShen() {
   if (shenMesh || shenLoading) return;
@@ -6273,7 +6303,7 @@ function tickProps(e) {
     let t = ballsGroup.children[e];
     if (Math.hypot(Sp - t.userData.x, Cp - t.userData.z) < 1.15) {
       let n = Date.now();
-      claimBall(e, freeId, n), liveSend(`grab`, { i: e, id: freeId, at: n, round: worldRound }), trackFree(), lm(`orb`), tm(`Esfera ${e + 1}. Llevás ${myHeld()}.`);
+      claimBall(e, freeId, n), liveSend(`world`, worldSnap(0)), trackFree(), lm(`orb`), tm(`Esfera ${e + 1}. Llevás ${myHeld()}.`);
       break
     }
   }
@@ -6281,6 +6311,9 @@ function tickProps(e) {
 }
 function liveSend(e, t) {
   freeCh && Q === `free` && freeCh.send({ type: `broadcast`, event: e, payload: t })
+}
+function sendBeam(e) {
+  Hf && liveSend(`beam`, { id: freeId, on: e ? 1 : 0, rot: +Hf.rotation.y.toFixed(2), at: Date.now() })
 }
 function sayLocal(e) {
   mySay = e, mySayUntil = performance.now() + 7000, myBubble || (myBubble = makeBubble(), Hf && Hf.add(myBubble.sprite)), myBubble.text = ``
@@ -6308,7 +6341,7 @@ function enterFree() {
 function freeFire() {
   if (Q !== `free` || mp > 0 || lp > 0) return;
   if (Xf < 25) return tm(`Recupera KI para disparar`);
-  Xf -= 25, beamPower = 1, beamUntil = performance.now() + 1450, lp = 1.45, faceToward(-Math.sin(camYaw), -Math.cos(camYaw), 99), rm(`fire`), lm(`beam`), tm(`¡KAMEHAMEHA!`), um()
+  Xf -= 25, beamPower = 1, beamUntil = performance.now() + 1450, lp = 1.45, faceToward(-Math.sin(camYaw), -Math.cos(camYaw), 99), rm(`fire`), lm(`beam`), sendBeam(1), tm(`¡KAMEHAMEHA!`), um()
 }
 
 function faceToward(t, n, e) {
@@ -6334,8 +6367,8 @@ function freeMove(e) {
   let i = -Math.sin(camYaw) * n + Math.cos(camYaw) * t,
     s = -Math.cos(camYaw) * n - Math.sin(camYaw) * t,
     o = r > .05;
-  Sp = Nt.clamp(Sp + i * 7.2 * e, -18, 18), Cp = Nt.clamp(Cp + s * 7.2 * e, -16, 14), Hf.visible = !0, Hf.position.set(Sp, 0, Cp), Hf.rotation.z = 0, lp > 0 ? (lp = Math.max(0, lp - e), rm(`fire`)) : (o && faceToward(i, s, e), rm(o ? `run` : `idle`)), Wf.update(e), Xf = Math.min(100, Xf + 14 * e), Yf = freeHp > 66 ? 3 : freeHp > 33 ? 2 : freeHp > 0 ? 1 : 0;
-  sweepRemotes(), tickProps(e); for (let t of remotes.values()) t.movedAt && performance.now() - t.movedAt > 280 && (t.targetX = t.wrapper.position.x, t.targetZ = t.wrapper.position.z, t.movedAt = 0), t.wrapper.visible = !0, t.wrapper.position.x = Nt.damp(t.wrapper.position.x, t.targetX, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, t.targetZ, 8, e), t.wrapper.position.y = 0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamOn > 0, paintTag(t), paintSay(t.bubble, t.say, t.sayUntil);
+  Sp = Nt.clamp(Sp + i * 7.2 * e, -18, 18), Cp = Nt.clamp(Cp + s * 7.2 * e, -16, 14), Hf.visible = !0, Hf.position.set(Sp, 0, Cp), Hf.rotation.z = 0, lp > 0 ? (lp = Math.max(0, lp - e), lp || sendBeam(0), rm(`fire`)) : (o && faceToward(i, s, e), rm(o ? `run` : `idle`)), Wf.update(e), Xf = Math.min(100, Xf + 14 * e), Yf = freeHp > 66 ? 3 : freeHp > 33 ? 2 : freeHp > 0 ? 1 : 0;
+  sweepRemotes(), tickProps(e); for (let t of remotes.values()) t.movedAt && performance.now() - t.movedAt > 280 && (t.targetX = t.wrapper.position.x, t.targetZ = t.wrapper.position.z, t.movedAt = 0), t.wrapper.visible = !0, t.wrapper.position.x = Nt.damp(t.wrapper.position.x, t.targetX, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, t.targetZ, 8, e), t.wrapper.position.y = 0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil);
   let a = performance.now();
   if (a < beamUntil && freeCh && (freeHitAcc += e) > .12) {
     freeHitAcc = 0;
@@ -6377,7 +6410,7 @@ function qm(e) {
   let t = Math.min((e - Km) / 1e3, .04);
   Km = e, fp += t, Hf && (Q === `hub` ? Wm(t) : Q === `free` ? freeMove(t, e) : Q === `running` ? Gm(t, e) : Q === `menu` && (Hf.position.set(0, 0, 6), Hf.rotation.y = Math.PI, rm(`idle`), Wf.update(t * .5), pf.position.set(0, 20, 26), pf.lookAt(0, 0, -3))), em.forEach((e, t) => {
     e.ring.rotation.z = fp * (t % 2 ? -.18 : .18), e.fill.scale.setScalar(1 + Math.sin(fp * 2 + t) * .04)
-  }), kp?.update(t), Q === `cinematic` && Mp === `bulma` && (Np += t, X(`#bulmaPortrait`).src = Rf(`./sprites/bulma-wave-${Math.floor(Np*6)%8}.png`)), Bp.visible = (Q === `running` || Q === `free`) && lp > 0, Bp.position.set(Q === `free` ? Sp : tp, (Q === `free` ? 1.15 : np + .12), Q === `free` ? Cp : 0), Q === `free` && Hf && (Bp.rotation.y = Hf.rotation.y + Math.PI, Bp.scale.set(.65, .65, .26)), Q !== `free` && Bp.scale.set(1, 1, 1), Up.visible = Wp.visible = lp > 0, Gp.visible = !1, Kp.position.set(Q === `free` ? Sp + Math.sin(Hf.rotation.y) * 3 : tp, Q === `free` ? 1.3 : 1.2 + np, Q === `free` ? Cp + Math.cos(Hf.rotation.y) * 3 : -1), Kp.intensity = Bp.visible ? 10 : 0, Xp.visible = Q === `running` && (mp > 0 || hp > 0);
+  }), kp?.update(t), Q === `cinematic` && Mp === `bulma` && (Np += t, X(`#bulmaPortrait`).src = Rf(`./sprites/bulma-wave-${Math.floor(Np*6)%8}.png`)), Bp.visible = (Q === `running` || Q === `free`) && lp > 0, Bp.position.set(Q === `free` && Hf ? Sp + Math.sin(Hf.rotation.y) * .55 : Q === `free` ? Sp : tp, Q === `free` ? .4 : np + .12, Q === `free` && Hf ? Cp + Math.cos(Hf.rotation.y) * .55 : Q === `free` ? Cp : 0), Q === `free` && Hf && (Bp.rotation.y = Hf.rotation.y + Math.PI, Bp.scale.set(.65, .65, .26)), Q !== `free` && Bp.scale.set(1, 1, 1), Up.visible = Wp.visible = lp > 0, Gp.visible = !1, Kp.position.set(Q === `free` ? Sp + Math.sin(Hf.rotation.y) * 3 : tp, Q === `free` ? 1.3 : 1.2 + np, Q === `free` ? Cp + Math.cos(Hf.rotation.y) * 3 : -1), Kp.intensity = Bp.visible ? 10 : 0, Xp.visible = Q === `running` && (mp > 0 || hp > 0);
   let n = mp > 0 ? .3 + (Wd.charge - mp) / Wd.charge * 1.3 : 1.5;
   Xp.scale.setScalar(n), Xp.position.set(tp, 4 + np, hp > 0 ? -(.9 - hp) * 65 : 0), Zp.rotation.y = fp, Jp.visible = Q === `running` && yp > 0, Jp.position.set(tp, .7 + np, -(1.25 - yp) * 22), Jp.scale.setScalar(1 + (1.25 - yp) * 18), Jp.material.opacity = yp / 1.25, Yp.visible = Q === `running` && bp > 0, Yp.position.set(tp, 1.2 + np, 0), Yp.rotation.y = fp;
   for (let e = zp.length - 1; e >= 0; e--) {
