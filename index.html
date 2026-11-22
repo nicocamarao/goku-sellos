@@ -5444,20 +5444,10 @@ function laySeg(a, b, w, h, mat, lift) {
   return m.lookAt(b.x, b.y, b.z), m
 }
 function buildSnake() {
-  let pts = [{ x: 0, y: 0, z: 0 }], x = 0, y = 0, z = 0;
-  for (let i = 1; i <= 14; i++) pts.push({ x: 0, y: 0, z: i * 2 });
-  z = 28;
-  let dir = 0;
-  for (let lap = 0; lap < 4; lap++) {
-    let R = 16, sweep = Math.PI * 1.15, steps = 24, rise = 6.2, hx = Math.sin(dir), hz = Math.cos(dir), lx = -hz, lz = hx, cx = x + lx * R, cz = z + lz * R;
-    for (let i = 1; i <= steps; i++) {
-      let a = i / steps * sweep;
-      pts.push({ x: cx - lx * Math.cos(a) * R + hx * Math.sin(a) * R, y: y + rise * (i / steps), z: cz - lz * Math.cos(a) * R + hz * Math.sin(a) * R })
-    }
-    x = pts[pts.length - 1].x, y = pts[pts.length - 1].y, z = pts[pts.length - 1].z, dir -= sweep;
-    let fx = Math.sin(dir), fz = Math.cos(dir), slen = 26, ssteps = 12, srise = 1.2;
-    for (let i = 1; i <= ssteps; i++) pts.push({ x: x + fx * (slen * i / ssteps), y: y + srise * (i / ssteps), z: z + fz * (slen * i / ssteps) });
-    x = pts[pts.length - 1].x, y = pts[pts.length - 1].y, z = pts[pts.length - 1].z
+  let pts = [], len = 320, rise = 165, steps = 80;
+  for (let i = 0; i <= steps; i++) {
+    let u = i / steps;
+    pts.push({ x: 0, y: rise * u, z: len * u })
   }
   let acc = 0;
   pts[0].s = 0, pts[0].d = 0;
@@ -5471,7 +5461,7 @@ function buildSnake() {
   });
   snakeGroup = new An, snakeGroup.visible = !1, df.add(snakeGroup);
   for (let i = 0; i < pts.length - 1; i++) {
-    let c = pts[i].y < 3 ? `#efe6d4` : pts[i].y < 8 ? `#e4d5b4` : `#f4e7c4`;
+    let top = pts[pts.length - 1].y || 1, c = pts[i].y < top * .33 ? `#efe6d4` : pts[i].y < top * .66 ? `#e4d5b4` : `#f4e7c4`;
     laySeg(pts[i], pts[i + 1], 7.2, .42, gf(`#c9b89a`), -.12), laySeg(pts[i], pts[i + 1], 6.1, .2, gf(c), .12)
   }
   let rock = new Ya({ color: `#ffe14a`, emissive: `#ffcc00`, emissiveIntensity: .9, roughness: .35 });
