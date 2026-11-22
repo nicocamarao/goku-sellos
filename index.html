@@ -5557,7 +5557,7 @@ function mm(e = ``) {
   fm(), hideRemotes(), freeCh?.untrack(), Bp.rotation.set(0, 0, 0), Q = `hub`, Yf = 3, Xf = 100, Sp = 0, Cp = 6, Ep = {
     x: 0,
     z: 0
-  }, Tp = null, Dp = -1, Op = !1, am(tf($)), Hf.visible = !0, ip = 0, Hf.position.set(Sp, 0, Cp), Hf.rotation.set(0, Math.PI, 0), hf.visible = !1, Qp.visible = !0, qp.group.visible = !1, Af.visible = jf.visible = !0, df.background.set(`#a9dbeb`), df.fog = new Rn(`#c5e2d8`, 42, 155), X(`#menu`).classList.add(`hidden`), X(`#result`).classList.add(`hidden`), X(`#cinema`).classList.add(`hidden`), X(`#hubPanel`).classList.remove(`hidden`), matchMedia(`(max-width:600px)`).matches && (X(`#hubPanel`).classList.add(`is-min`), X(`#hubToggle`).textContent = `PUERTAS ▾`), X(`#levelGrid`).classList.add(`hidden`), X(`#runnerActions`).classList.add(`hidden`), X(`#exit`).classList.add(`hidden`), X(`#exit`).classList.remove(`is-back`), X(`#exit`).textContent = `⌂`, X(`#hubInteract`).classList.add(`hidden`), X(`#padLabel`).textContent = `MOVERSE LIBREMENTE`, X(`#questLabel`).textContent = `DOS AROS`, X(`#balls`).classList.add(`hidden`), hidePortals(!1), X(`#chatBar`).classList.add(`hidden`), ballsGroup && (ballsGroup.visible = boxGroup.visible = !1), shenMesh && (shenMesh.visible = !1), pm(), nm(), um(), e && tm(e)
+  }, Tp = null, Dp = -1, Op = !1, am(tf($)), Hf.visible = !0, ip = 0, Hf.position.set(Sp, 0, Cp), Hf.rotation.set(0, Math.PI, 0), hf.visible = !1, Qp.visible = !0, qp.group.visible = !1, Af.visible = jf.visible = !0, df.background.set(`#a9dbeb`), df.fog = new Rn(`#c5e2d8`, 42, 155), X(`#menu`).classList.add(`hidden`), X(`#result`).classList.add(`hidden`), X(`#cinema`).classList.add(`hidden`), X(`#hubPanel`).classList.remove(`hidden`), matchMedia(`(max-width:600px)`).matches && (X(`#hubPanel`).classList.add(`is-min`), X(`#hubToggle`).textContent = `PUERTAS ▾`), X(`#levelGrid`).classList.add(`hidden`), X(`#runnerActions`).classList.add(`hidden`), X(`#exit`).classList.add(`hidden`), X(`#exit`).classList.remove(`is-back`), X(`#exit`).textContent = `⌂`, X(`#hubInteract`).classList.add(`hidden`), X(`#padLabel`).textContent = `MOVERSE LIBREMENTE`, X(`#questLabel`).textContent = `DOS AROS`, X(`#balls`).classList.add(`hidden`), hidePortals(!1), X(`#chatBar`).classList.add(`hidden`), ballsGroup && (ballsGroup.visible = boxGroup.visible = !1), shenMesh && (shenMesh.visible = !1), myBubble && (myBubble.sprite.visible = !1), pm(), nm(), um(), e && tm(e)
 }
 
 function hm(e) {
@@ -6316,7 +6316,15 @@ function sendBeam(e) {
   Hf && liveSend(`beam`, { id: freeId, on: e ? 1 : 0, rot: +Hf.rotation.y.toFixed(2), at: Date.now() })
 }
 function sayLocal(e) {
-  mySay = e, mySayUntil = performance.now() + 7000, myBubble || (myBubble = makeBubble(), Hf && Hf.add(myBubble.sprite)), myBubble.text = ``
+  mySay = e, mySayUntil = performance.now() + 7000, myBubble || (myBubble = makeBubble()), myBubble.text = ``
+}
+function placeMyBubble() {
+  if (!myBubble || !Hf || Q !== `free`) return;
+  myBubble.sprite.parent !== df && df.add(myBubble.sprite), paintSay(myBubble, mySay, mySayUntil);
+  if (!myBubble.sprite.visible) return;
+  pf.updateMatrixWorld();
+  let e = pf.matrixWorld.elements;
+  myBubble.sprite.position.set(Sp + e[0] * .85, 2.05 + e[1] * .85, Cp + e[2] * .85)
 }
 function paintHudBalls() {
   let e = X(`#ballCount`);
@@ -6390,7 +6398,7 @@ function freeMove(e) {
       })
     }
   }
-  myBubble && Hf && (myBubble.sprite.parent || Hf.add(myBubble.sprite), paintSay(myBubble, mySay, mySayUntil)), a - freeSendAt > 200 && (freeSendAt = a, sendMove()), placeFreeCam(e), um()
+  a - freeSendAt > 200 && (freeSendAt = a, sendMove()), placeFreeCam(e), placeMyBubble(), um()
 }
 
 X(`#chatBar`).addEventListener(`submit`, e => {
