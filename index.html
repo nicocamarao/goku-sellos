@@ -5187,7 +5187,24 @@ function packSave(e) {
     at: Number(e.at) || Date.now()
   } : null
 }
+var NAMES = `Ana,Leo,Luz,Sol,Mia,Eva,Ian,Noa,Zoe,Ari,Teo,Pau,Lia,Kai,Nia,Eli,Oto,Uma,Ivo,Rui,Lara,Nico,Vera,Gaia,Enzo,Alma,Bruno,Carla,Dario,Elena,Fabio,Hugo,Ines,Lola,Marco,Nora,Omar,Pilar,Rosa,Sara,Tomas,Wanda,Julio,Lucia,Maria,Pedro,Pablo,Diego,Andre,Sofia,Emma,Laura,Paula,Elias,Mario,Oscar,Ruben,Silvia,Carmen,Daniel,Esther,Gloria,Ignacio,Jimena,Karina,Manuel,Natalia,Olivia,Ramon,Sandra,Teresa,Vicente,Yolanda,Adrian,Beatriz,Camila,Esteban,Fatima,German,Helena,Isabel,Javier,Karen,Leonor,Monica,Nelson,Oriana,Ramiro,Samuel,Tamara,Ursula,Valeria,Xavier,Yasmin,Goku,Gohan,Vegeta,Trunks,Piccolo,Krilin,Bulma,Yamcha,Tenshi,Chaos,Roshi,Freezer,Cell,Buu,Bills,Whis,Jiren,Broly,Bardock,Raditz,Nappa,Videl,Pan,Bra,Dende,Puar,Oolong,Shenron,Kami,Korin,Yajirobe,Chichi,Launch,Pilaf,Tapion,Bojack,Cooler,Ginyu,Jeice,Burter,Recoome,Guldo,Nail,Shin,Kibito,Beerus,Champa,Vados,Toppo,Dyspo,Kefla,Kale,Cabba,Hit,Magetta,Appule,Zarbon,Dodoria,Salza,Akira,Tori,Yam,Yajiro,Upa,Bora,Papa,Rei,Chi,Mai,Shu,Tao,Baba,Uranai,Zangya,Minotia,Cold,King,Vegetto,Gogeta,Goten,Kid,Uub,Alonso,Amparo,Anibal,Araceli,Armando,Aurora,Basilisa,Benigna,Benigno,Berta,Blas,Candela,Celia,Cesar,Clara,Claudio,Cristina,Cruz,David,Diana,Domingo,Dorotea,Eduardo,Elvira,Emilio,Encarna,Ernesto,Eugenia,Eugenio,Eulalia,Eusebio,Facundo,Federico,Felicia,Felix,Fermina,Fermin,Genaro,Gerardo,Graciela,Gregorio,Herminia,Hilario,Hipolito,Humberto,Iban,Ignacia,Irene,Isaac,Isidro,Isidora,Jacinta,Jacinto,Jesus,Joaquin,Josefa,Josefina,Juan,Juana,Judith,Julia,Justo,Leandro,Lidia,Ligia,Lorena,Lorenza,Lourdes,Lucas,Luciano,Luisa,Luzmira,Macarena,Malena,Manuela,Marcelo,Marcela,Marcos,Marina,Marisol,Marta,Martin,Matias,Melchor,Mercedes,Miguel,Milagros,Miriam,Modest,Modesta,Moises,Narciso,Nicolas,Nieves,Noelia,Nuria,Octavio,Ofelia,Olegario,Olga,Oswaldo,Paco,Paloma,Pascual,Pastor,Patricia,Paz,Penelope,Perpetua,Pino,Placida,Placido,Porfirio,Pristino,Puri,Rafela,Raimundo,Ramona,Raquel,Rebeca,Regina,Remedios,Renata,Reyes,Ricardo,Rocio,Rodrigo,Rogelio,Romina,Romulo,Rosalia,Rosario,Roque,Rufino,Sabina,Salome,Salva,Santos,Sebas,Segundo,Selena,Serafin,Sergio,Severino,Simona,Socorro,Soledad,Sonia,Susana,Teodora,Teofilo,Tiburcio,Trini,Trinidad,Valentin,Velasco,Venancio,Veronica,Vicenta,Victor,Violeta,Virginia,Viviana,Ximena,Yago,Yahir,Yamile,Yenny,Yesica,Yoli,Zacarias,Zoraida,Zurine,Abril,Ada,Adel,Aida,Aina,Aine,Alba,Alberto,Alejo,Alfonso,Alfredo,Alicia,Almudena,Alvaro,Amalia,Amanda,Amelia,Anael,Anais,Antonia,Antonio,Ariadna,Arturo,Asier,Azahar,Barbara,Bartolo,Basil,Belen,Beltran,Bernarda,Bernardo,Betina,Blanca,Brais,Brigida,Camilo,Candido,Caridad,Carlos,Carme,Carmina,Catalina,Cayetano,Cecilia,Charo,Cinto,Cipriano,Cirilo,Cleofe,Cleto,Clotilde,Concha,Constan,Cora,Cosme,Cris,Custodio,Dacil,Dalia,Damian,Dani,Delia,Dolores,Donato,Dulce,Edgardo,Edmundo,Eladio,Eligio,Elisa,Eliseo,Eloy,Elsa,Emilia,Enrique,Estrella,Evaristo,Ezequiel,Fabian,Felipa,Fernanda,Fernando,Fidel,Filomena,Flora,Franco,Gabriel,Genoveva,Gervasio,Gines,Helios,Heraclio,Hermes,Hernando,Homero,Ibel,Ilde,Irma,Ivan,Jaime,Jorge,Jose,Leon,Leticia,Lucio,Luna,Magda,Manolo,Marek,Marga,Mateo,Mauricio,Maximo,Rafael,Roman,Saturno,Simon,Vega,Abel,Acre,Adil,Adan,Agata,Agnes,Agustin,Aitor,Aixa,Alan,Alban,Albin,Aldoa,Aldo,Aleix,Alina,Alita,Almud,Alvar,Amado,Amaro,Ameba,Amira,Amor,Aneto,Angel,Anita,Ansel,Anto,Anselm,Antoine,Aran`.split(`,`);
+function nick() {
+  let e = ``, n = 0;
+  do {
+    let t = Math.floor(Math.random() * NAMES.length), r = Math.floor(Math.random() * NAMES.length);
+    r === t && (r = (t + 1) % NAMES.length), e = NAMES[t] + NAMES[r]
+  } while (saves.some(t => t.name === e) && ++n < 8);
+  return e
+}
+function forgetOldPlayers() {
+  if (localStorage.getItem(`goku-names-v2`)) return;
+  try {
+    localStorage.removeItem(`goku-saves-v1`), localStorage.removeItem(`goku-pid`), localStorage.removeItem(Ud), localStorage.removeItem(`goku-runner-best`), localStorage.setItem(`goku-names-v2`, `1`)
+  } catch {}
+  ;[`goku-saves-v1`, `goku-pid`, Ud, `goku-runner-best`].forEach(e => document.cookie = `${e}=; max-age=0; path=/`)
+}
 function loadSaves() {
+  forgetOldPlayers();
   let e = null,
     t = null;
   try {
@@ -5197,20 +5214,6 @@ function loadSaves() {
     t = JSON.parse(readKeep(`goku-saves-v1`) || `null`)
   } catch {}
   let n = Array.isArray(e) && e.length ? e : Array.isArray(t) ? t : [];
-  if (!n.length) {
-    let e = readKeep(`goku-pid`),
-      r = null;
-    try {
-      r = JSON.parse(readKeep(Ud))
-    } catch {}
-    ;(e || r) && (n = [{
-      id: e || crypto.randomUUID(),
-      name: `Jugador 1`,
-      progress: qd(r),
-      best: Number(readKeep(`goku-runner-best`) || 0),
-      at: Date.now()
-    }])
-  }
   saves = n.map(packSave).filter(Boolean).sort((e, t) => t.at - e.at)
 }
 function persistSaves() {
@@ -5250,15 +5253,14 @@ function useSave(e) {
   activeSave = packSave(e), freeId = activeSave.id, $ = qd(activeSave.progress), dp = activeSave.best || 0, activeSave.at = Date.now(), persistSaves(), mm($.cleared === 10 && !$.bulma10 ? `Seguís como ${activeSave.name}. Bulma te espera.` : $.finished ? `${activeSave.name}: las once regiones están a salvo.` : `Seguís como ${activeSave.name}.`)
 }
 function newSave() {
-  let e = saves.reduce((e, t) => Math.max(e, Number((String(t.name).match(/\d+/) || [0])[0])), 0) + 1,
-    t = packSave({
+  let e = packSave({
       id: crypto.randomUUID(),
-      name: `Jugador ${e}`,
+      name: nick(),
       progress: qd(null),
       best: 0,
       at: Date.now()
     });
-  saves.unshift(t), useSave(t)
+  saves.unshift(e), useSave(e)
 }
 loadSaves();
 var SB_URL = `https://kidaqymftzoyqskkobnw.supabase.co`,
@@ -6025,12 +6027,12 @@ function syncPresence() {
     n++, t.add(r);
     let c = remotes.get(r);
     if (!c) try {
-      c = spawnRemote(), remotes.set(r, c), liveLog(`apareció ${i} x=${Number(s.x || 0).toFixed(1)} z=${Number(s.z || 0).toFixed(1)} nv=${s.level ?? `?`}`), tm(`Apareció un jugador cerca.`)
+      c = spawnRemote(), remotes.set(r, c), c.targetX = s.x || 0, c.targetZ = s.z || 0, c.rot = s.rot || 0, c.wrapper.position.set(c.targetX, 0, c.targetZ), liveLog(`apareció ${i} nv=${s.level ?? `?`}`), tm(`Apareció un jugador cerca.`)
     } catch (e) {
       liveLog(`falló el cuerpo ${i}: ${e && e.message || e}`);
       continue
     }
-    c.targetX = s.x || 0, c.targetZ = s.z || 0, c.rot = s.rot || 0, c.level = Number(s.level) || 0, c.name = String(s.name || `Jugador`).slice(0, 24), c.beamOn = s.beam || 0, (!c.movedAt || performance.now() - c.movedAt > 1500) && (c.targetX = s.x || 0, c.targetZ = s.z || 0, c.rot = s.rot || 0), o.push(`${i} x=${Number(s.x || 0).toFixed(1)} z=${Number(s.z || 0).toFixed(1)} nv=${s.level ?? `?`}`)
+    c.level = Number(s.level) || 0, c.name = String(s.name || `Jugador`).slice(0, 24), c.beamOn = s.beam || 0, o.push(`${i} x=${Number(s.x || 0).toFixed(1)} z=${Number(s.z || 0).toFixed(1)} nv=${s.level ?? `?`}`)
   }
   for (let [e, r] of remotes) t.has(e) || (df.remove(r.wrapper), remotes.delete(e), liveLog(`se fue ${String(e).slice(0, 8)}`));
   let l = `canal ${Object.keys(e).length}: ${o.join(` | `) || `nadie`}`;
@@ -6044,6 +6046,7 @@ function sendMove() {
     event: `move`,
     payload: {
       id: freeId,
+      at: Date.now(),
       x: +Sp.toFixed(2),
       z: +Cp.toFixed(2),
       rot: +Hf.rotation.y.toFixed(2),
@@ -6052,26 +6055,24 @@ function sendMove() {
     }
   })
 }
+function dropRemotes() {
+  for (let e of remotes.values()) df.remove(e.wrapper);
+  remotes.clear(), syncNote = ``
+}
 function trackFree() {
-  if (!(freeCh && Q === `free` && Hf) || trackBusy) return;
-  trackBusy = !0;
-  let e = {
+  if (!(freeCh && Q === `free` && Hf)) return;
+  freeCh.track({
     x: +Sp.toFixed(2),
     z: +Cp.toFixed(2),
     rot: +Hf.rotation.y.toFixed(2),
     level: $.cleared,
     name: playerName()
-  };
-  freeCh.track(e).then(t => {
-    trackBusy = !1, t !== `ok` && liveLog(`track ${t} id=${String(freeId).slice(0, 8)}`)
-  }).catch(e => {
-    trackBusy = !1, liveLog(`track error ${e && e.message || e}`)
-  })
+  }).catch(() => {})
 }
 
 async function connectFree() {
   if (!freeId) return liveLog(`sin id de jugador. no puedo entrar al canal`);
-  if (freeCh) return liveLog(`canal ya abierto, reenvío id=${String(freeId).slice(0, 8)}`), trackFree();
+  if (freeCh) return;
   liveLog(`conectando id=${String(freeId).slice(0, 8)}`);
   try {
     let {
@@ -6083,11 +6084,6 @@ async function connectFree() {
         autoRefreshToken: !1,
         detectSessionInUrl: !1
       },
-      realtime: {
-        params: {
-          eventsPerSecond: 10
-        }
-      }
     }), sbClient.realtime.accessToken = null, sbClient.realtime._isManualToken = () => !0, freeCh = sbClient.channel(`goku-mundo-libre`, {
       config: {
         presence: {
@@ -6104,9 +6100,10 @@ async function connectFree() {
     }, ({
       payload: e
     }) => {
-      if (!e || e.id === freeId || Q !== `free`) return;
+      if (!e || e.id === freeId || Q !== `free` || !e.at || Date.now() - e.at > 350) return;
       let t = remotes.get(e.id);
-      t && (t.targetX = e.x || 0, t.targetZ = e.z || 0, t.rot = e.rot || 0, t.level = Number(e.level) || 0, t.name = String(e.name || `Jugador`).slice(0, 24), t.movedAt = performance.now())
+      if (!t || t.seenAt && e.at <= t.seenAt) return;
+      t.seenAt = e.at, t.movedAt = performance.now(), t.targetX = e.x || 0, t.targetZ = e.z || 0, t.rot = e.rot || 0, t.level = Number(e.level) || 0, t.name = String(e.name || `Jugador`).slice(0, 24)
     }), freeCh.on(`broadcast`, {
       event: `hit`
     }, ({
@@ -6124,11 +6121,10 @@ async function connectFree() {
       liveLog(`estado ${e}${t && (t.message || t) ? ` ${t.message || t}` : ``} id=${String(freeId).slice(0, 8)}`)
       if (e === `SUBSCRIBED`) return X(`#questLabel`).textContent = `MUNDO LIBRE · CONECTADO`, trackFree()
       if (e === `CHANNEL_ERROR` || e === `TIMED_OUT` || e === `CLOSED`) {
-        X(`#questLabel`).textContent = `MUNDO LIBRE · SIN SEÑAL`
-        let n = freeCh
-        freeCh = null
-        try { n && sbClient && sbClient.removeChannel(n) } catch {}
-        freeRetry || Q === `free` && (freeRetry = setTimeout(() => { freeRetry = 0, Q === `free` && connectFree() }, 1500), liveLog(`reintento en 1.5 s`))
+        let n = freeCh;
+        if (!n) return;
+        freeCh = null, dropRemotes(), X(`#questLabel`).textContent = `MUNDO LIBRE · SIN SEÑAL`, liveLog(`canal cerrado`);
+        try { sbClient && sbClient.removeChannel(n) } catch {}
       }
     })
   } catch (e) {
@@ -6188,7 +6184,7 @@ function freeMove(e) {
     s = -Math.cos(camYaw) * n - Math.sin(camYaw) * t,
     o = r > .05;
   Sp = Nt.clamp(Sp + i * 7.2 * e, -18, 18), Cp = Nt.clamp(Cp + s * 7.2 * e, -16, 14), Hf.visible = !0, Hf.position.set(Sp, 0, Cp), Hf.rotation.z = 0, lp > 0 ? (lp = Math.max(0, lp - e), rm(`fire`)) : (o && faceToward(i, s, e), rm(o ? `run` : `idle`)), Wf.update(e), Xf = Math.min(100, Xf + 14 * e), Yf = freeHp > 66 ? 3 : freeHp > 33 ? 2 : freeHp > 0 ? 1 : 0;
-  for (let t of remotes.values()) t.wrapper.visible = !0, t.wrapper.position.x = Nt.damp(t.wrapper.position.x, t.targetX, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, t.targetZ, 8, e), t.wrapper.position.y = 0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamOn > 0, paintTag(t);
+  for (let t of remotes.values()) t.movedAt && performance.now() - t.movedAt > 280 && (t.targetX = t.wrapper.position.x, t.targetZ = t.wrapper.position.z, t.movedAt = 0), t.wrapper.visible = !0, t.wrapper.position.x = Nt.damp(t.wrapper.position.x, t.targetX, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, t.targetZ, 8, e), t.wrapper.position.y = 0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamOn > 0, paintTag(t);
   let a = performance.now();
   if (a < beamUntil && freeCh && (freeHitAcc += e) > .12) {
     freeHitAcc = 0;
@@ -6210,7 +6206,7 @@ function freeMove(e) {
       })
     }
   }
-  a - freeSendAt > 200 && (freeSendAt = a, sendMove()), a - freeBeatAt > 2000 && (freeBeatAt = a, trackFree()), placeFreeCam(e), um()
+  a - freeSendAt > 200 && (freeSendAt = a, sendMove()), placeFreeCam(e), um()
 }
 
 X(`#hubToggle`).onclick = () => {
