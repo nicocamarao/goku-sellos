@@ -5557,7 +5557,7 @@ function mm(e = ``) {
   fm(), hideRemotes(), freeCh?.untrack(), Bp.rotation.set(0, 0, 0), Q = `hub`, Yf = 3, Xf = 100, Sp = 0, Cp = 6, Ep = {
     x: 0,
     z: 0
-  }, Tp = null, Dp = -1, Op = !1, am(tf($)), Hf.visible = !0, ip = 0, Hf.position.set(Sp, 0, Cp), Hf.rotation.set(0, Math.PI, 0), hf.visible = !1, Qp.visible = !0, qp.group.visible = !1, Af.visible = jf.visible = !0, df.background.set(`#a9dbeb`), df.fog = new Rn(`#c5e2d8`, 42, 155), X(`#menu`).classList.add(`hidden`), X(`#result`).classList.add(`hidden`), X(`#cinema`).classList.add(`hidden`), X(`#hubPanel`).classList.remove(`hidden`), matchMedia(`(max-width:600px)`).matches && (X(`#hubPanel`).classList.add(`is-min`), X(`#hubToggle`).textContent = `PUERTAS ▾`), X(`#levelGrid`).classList.add(`hidden`), X(`#runnerActions`).classList.add(`hidden`), X(`#exit`).classList.add(`hidden`), X(`#exit`).classList.remove(`is-back`), X(`#exit`).textContent = `⌂`, X(`#hubInteract`).classList.add(`hidden`), X(`#padLabel`).textContent = `MOVERSE LIBREMENTE`, X(`#questLabel`).textContent = `DOS AROS`, X(`#balls`).classList.add(`hidden`), hidePortals(!1), X(`#chatBar`).classList.add(`hidden`), ballsGroup && (ballsGroup.visible = boxGroup.visible = !1), shenMesh && (shenMesh.visible = !1), myBubble && (myBubble.sprite.visible = !1), pm(), nm(), um(), e && tm(e)
+  }, Tp = null, Dp = -1, Op = !1, am(tf($)), Hf.visible = !0, ip = 0, Hf.position.set(Sp, 0, Cp), Hf.rotation.set(0, Math.PI, 0), hf.visible = !1, Qp.visible = !0, qp.group.visible = !1, Af.visible = jf.visible = !0, df.background.set(`#a9dbeb`), df.fog = new Rn(`#c5e2d8`, 42, 155), X(`#menu`).classList.add(`hidden`), X(`#result`).classList.add(`hidden`), X(`#cinema`).classList.add(`hidden`), X(`#hubPanel`).classList.remove(`hidden`), matchMedia(`(max-width:600px)`).matches && (X(`#hubPanel`).classList.add(`is-min`), X(`#hubToggle`).textContent = `PUERTAS ▾`), X(`#levelGrid`).classList.add(`hidden`), X(`#runnerActions`).classList.add(`hidden`), X(`#exit`).classList.add(`hidden`), X(`#exit`).classList.remove(`is-back`), X(`#exit`).textContent = `⌂`, X(`#hubInteract`).classList.add(`hidden`), X(`#padLabel`).textContent = `MOVERSE LIBREMENTE`, X(`#questLabel`).textContent = `DOS AROS`, X(`#balls`).classList.add(`hidden`), hidePortals(!1), X(`#chatBar`).classList.add(`hidden`), ballsGroup && (ballsGroup.visible = boxGroup.visible = !1), shenMesh && (shenMesh.visible = !1), myBubble && (myBubble.sprite.visible = !1), myTag && (myTag.sprite.visible = !1), pm(), nm(), um(), e && tm(e)
 }
 
 function hm(e) {
@@ -6154,7 +6154,7 @@ function openGrid() {
 }
 
 
-var worldRound = 0, worldBox = 0, worldAt = 0, worldTaken = [null, null, null, null, null, null, null], sentX = null, sentZ = null, BOX_X = 0, BOX_Z = 9, ballsGroup = null, boxGroup = null, boxLabel = null, shenMesh = null, shenUntil = 0, shenAt = 0, seenShen = 0, shenLoading = !1, mySay = ``, mySayUntil = 0, myBubble = null;
+var worldRound = 0, worldBox = 0, worldAt = 0, worldTaken = [null, null, null, null, null, null, null], sentX = null, sentZ = null, BOX_X = 0, BOX_Z = 9, ballsGroup = null, boxGroup = null, boxLabel = null, shenMesh = null, shenUntil = 0, shenAt = 0, seenShen = 0, shenLoading = !1, mySay = ``, mySayUntil = 0, myBubble = null, myTag = null;
 function myHeld() {
   let n = 0;
   for (let e of worldTaken) e && e.id === freeId && n++;
@@ -6195,21 +6195,30 @@ function makeBubble() {
   let t = e.getContext(`2d`), n = new wa(e);
   n.colorSpace = Ue;
   let r = new ii(new Wr({ map: n, depthTest: !1, transparent: !0 }));
-  return r.position.set(1.15, 2.2, 0), r.scale.set(1.65, .62, 1), r.visible = !1, { sprite: r, ctx: t, tex: n, text: `` }
+  return r.position.set(0, 3.42, 0), r.scale.set(2.35, .78, 1), r.visible = !1, { sprite: r, ctx: t, tex: n, text: `` }
 }
 function paintSay(e, t, n) {
   if (!e) return;
   if (!t || performance.now() > n) return e.sprite.visible = !1;
   if (e.sprite.visible = !0, e.text === t) return;
   e.text = t;
-  let r = e.ctx;
-  r.clearRect(0, 0, 512, 192), r.fillStyle = `#fffdf8`, roundBox(r, 16, 12, 440, 124, 26), r.fill(), r.beginPath(), r.moveTo(40, 124), r.lineTo(10, 176), r.lineTo(96, 124), r.fill(), r.fillStyle = `#16384a`, r.font = `700 30px Arial, sans-serif`, r.textAlign = `left`, r.textBaseline = `top`;
-  let i = t.split(` `), a = ``, o = 32;
-  for (let e of i) {
+  let r = e.ctx, i = [], a = ``;
+  r.clearRect(0, 0, 512, 192), r.font = `700 30px Arial, sans-serif`;
+  for (let e of t.split(` `)) {
     let t = a ? a + ` ` + e : e;
-    r.measureText(t).width > 400 && a ? (r.fillText(a, 36, o), a = e, o += 36) : a = t
+    r.measureText(t).width > 360 && a ? (i.push(a), a = e) : a = t
   }
-  a && r.fillText(a, 36, o), e.tex.needsUpdate = !0
+  a && i.push(a), r.fillStyle = `#fffdf8`, roundBox(r, 56, 6, 400, 118, 24), r.fill(), r.beginPath(), r.moveTo(228, 116), r.lineTo(256, 186), r.lineTo(284, 116), r.fill(), r.fillStyle = `#16384a`, r.textAlign = `center`, r.textBaseline = `middle`;
+  let o = 64 - (i.length - 1) * 17;
+  i.forEach((e, t) => r.fillText(e, 256, o + t * 34)), e.tex.needsUpdate = !0
+}
+function makeNameTag() {
+  let e = document.createElement(`canvas`);
+  e.width = 512, e.height = 80;
+  let t = e.getContext(`2d`), n = new wa(e);
+  n.colorSpace = Ue;
+  let r = new ii(new Wr({ map: n, depthTest: !1, transparent: !0 }));
+  return r.position.set(0, 2.7, 0), r.scale.set(3.15, .5, 1), { sprite: r, ctx: t, tex: n, painted: `` }
 }
 function paintBox() {
   if (!boxLabel) return;
@@ -6316,15 +6325,12 @@ function sendBeam(e) {
   Hf && liveSend(`beam`, { id: freeId, on: e ? 1 : 0, rot: +Hf.rotation.y.toFixed(2), at: Date.now() })
 }
 function sayLocal(e) {
-  mySay = e, mySayUntil = performance.now() + 7000, myBubble || (myBubble = makeBubble()), myBubble.text = ``
+  mySay = e, mySayUntil = performance.now() + 7000, myBubble || (myBubble = makeBubble()), myBubble.text = ``, stickMine()
 }
-function placeMyBubble() {
-  if (!myBubble || !Hf || Q !== `free`) return;
-  myBubble.sprite.parent !== df && df.add(myBubble.sprite), paintSay(myBubble, mySay, mySayUntil);
-  if (!myBubble.sprite.visible) return;
-  pf.updateMatrixWorld();
-  let e = pf.matrixWorld.elements;
-  myBubble.sprite.position.set(Sp + e[0] * .85, 2.05 + e[1] * .85, Cp + e[2] * .85)
+function stickMine() {
+  if (!Hf || Q !== `free`) return;
+  myTag || (myTag = makeNameTag()), myTag.sprite.parent !== Hf && Hf.add(myTag.sprite), myTag.sprite.visible = !0, myTag.name = playerName(), myTag.level = $.cleared | 0, myTag.held = myHeld(), paintTag(myTag);
+  myBubble || (myBubble = makeBubble()), myBubble.sprite.parent !== Hf && Hf.add(myBubble.sprite), paintSay(myBubble, mySay, mySayUntil)
 }
 function paintHudBalls() {
   let e = X(`#ballCount`);
@@ -6398,7 +6404,7 @@ function freeMove(e) {
       })
     }
   }
-  a - freeSendAt > 200 && (freeSendAt = a, sendMove()), placeFreeCam(e), placeMyBubble(), um()
+  a - freeSendAt > 200 && (freeSendAt = a, sendMove()), placeFreeCam(e), stickMine(), um()
 }
 
 X(`#chatBar`).addEventListener(`submit`, e => {
