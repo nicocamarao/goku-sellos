@@ -6084,7 +6084,11 @@ function spawnRemote() {
   }), 0, .06, 0, t);
   return {
     wrapper: t,
+    rig: e.rig,
     mixer: n,
+    form: `goku`,
+    shown: null,
+    side: 0,
     ctx: a,
     tex: o,
     beam: c,
@@ -6103,19 +6107,43 @@ function spawnRemote() {
   }
 }
 
+function dressRemote(t) {
+  let form = t.ssj ? `ssj` : `goku`;
+  if (t.form === form || !Bf[form]) return;
+  t.form = form, t.mixer && t.mixer.stopAllAction(), t.rig && t.rig.removeFromParent();
+  let n = im({ scene: zu(Bf[form].scene) }, form === `ssj` ? 2.35 : 2.15);
+  t.wrapper.add(n.rig), t.rig = n.rig, t.mixer = new Ts(n.rig);
+  let clip = Bf[form].animations.find(e => e.name === `idle`) || Bf[form].animations[0];
+  clip && t.mixer.clipAction(clip).play()
+}
+function putRemoteSnake(t, dt) {
+  let goal = Math.max(0, Math.min(1, +t.prog || 0));
+  let onPlanet = goal > .9 && planet && Math.hypot((+t.px || 0) - planet.x, (+t.pz || 0) - planet.z) < planet.r;
+  if (onPlanet) {
+    t.shown = goal;
+    let x = +t.px || 0, z = +t.pz || 0, y = planet.y + .1;
+    Math.hypot(t.wrapper.position.x - x, t.wrapper.position.z - z) > 8 ? t.wrapper.position.set(x, y, z) : (t.wrapper.position.x += (x - t.wrapper.position.x) * (1 - Math.exp(-18 * dt)), t.wrapper.position.z += (z - t.wrapper.position.z) * (1 - Math.exp(-18 * dt)), t.wrapper.position.y = y);
+    return
+  }
+  t.shown == null || Math.abs(t.shown - goal) > .08 ? t.shown = goal : t.shown += (goal - t.shown) * (1 - Math.exp(-18 * dt));
+  let p = pointAt(t.shown), side = t.side || 0;
+  t.wrapper.position.set(p.x + p.rx * side, p.y + .26, p.z + p.rz * side)
+}
 function hearPlayer(e) {
   if (!e || !e.id || e.id === freeId || Q !== `free`) return;
   let at = +e.at || +e.pat || 0, t = remotes.get(e.id);
   if (at && Date.now() - at > 2000) return;
   if (!t) {
     if ((e.zone || `claro`) !== zone) return;
-    try { t = spawnRemote(), remotes.set(e.id, t), t.wrapper.position.set(+e.x || 0, 0, +e.z || 0) } catch { return }
+    try { t = spawnRemote(), remotes.set(e.id, t) } catch { return }
+    if (zone === `serpiente` && snakeGroup) snakeGroup.add(t.wrapper);
+    else t.wrapper.position.set(+e.x || 0, 0, +e.z || 0)
   }
   if (!at) { if (t.progAt) return } else if (t.progAt && at <= t.progAt) return;
-  at && (t.progAt = at), e.zone && (t.zone = e.zone), e.prog != null && (t.prog = +e.prog || 0), e.y != null && (t.pathY = +e.y || 0), e.ssj != null && (t.ssj = e.ssj ? 1 : 0), e.name && (t.name = String(e.name).slice(0, 24)), e.level != null && (t.level = Number(e.level) || 0), e.held != null && (t.held = Number(e.held) || 0), t.freshAt = performance.now();
-  if (t.zone === `serpiente`) {
+  at && (t.progAt = at), e.zone && (t.zone = e.zone), e.prog != null && (t.prog = +e.prog || 0), e.y != null && (t.pathY = +e.y || 0), e.ssj != null && (t.ssj = e.ssj ? 1 : 0), e.rot != null && (t.rot = +e.rot || 0), e.name && (t.name = String(e.name).slice(0, 24)), e.level != null && (t.level = Number(e.level) || 0), e.held != null && (t.held = Number(e.held) || 0), t.freshAt = performance.now();
+  if ((t.zone || `claro`) === `serpiente` && e.x != null && e.z != null) {
     let n = pointAt(Math.max(0, Math.min(1, +t.prog || 0)));
-    t.targetX = n.x, t.targetZ = n.z, t.pathY = n.y, t.movedAt = t.freshAt
+    t.px = +e.x || 0, t.pz = +e.z || 0, t.side = Nt.clamp((t.px - n.x) * n.rx + (t.pz - n.z) * n.rz, -3.1, 3.1), t.pathY = n.y, t.movedAt = t.freshAt
   }
 }
 function syncPresence() {
@@ -6171,7 +6199,7 @@ function dropRemotes() {
 function trackFree() {
   if (!(freeCh && Q === `free` && Hf)) return;
   let e = worldSnap(0);
-  e.name = playerName(), e.level = $.cleared, e.held = myHeld(), e.zone = zone, e.ssj = goingFast() ? 1 : 0, e.prog = snakeProg, e.y = snakeY, e.pat = Date.now(), freeCh.track(e).catch(() => {})
+  e.name = playerName(), e.level = $.cleared, e.held = myHeld(), e.zone = zone, e.ssj = goingFast() ? 1 : 0, e.prog = snakeProg, e.y = snakeY, e.x = +Sp.toFixed(2), e.z = +Cp.toFixed(2), e.rot = Hf ? +Hf.rotation.y.toFixed(2) : 0, e.pat = Date.now(), freeCh.track(e).catch(() => {})
 }
 
 async function connectFree() {
@@ -6212,7 +6240,8 @@ async function connectFree() {
       if (t && Math.hypot(x - t.targetX, z - t.targetZ) < .05 && (e.zone || `claro`) === (t.zone || `claro`)) return t.held = Number(e.held) || 0, t.name = String(e.name || t.name).slice(0, 24), t.level = Number(e.level) || t.level, t.ssj = e.ssj ? 1 : 0, t.prog = +e.prog || 0, t.pathY = +e.y || 0, e.beam && (t.beamUntil = performance.now() + 1500), t.rot = e.rot || t.rot;
       if (t && t.seenAt && e.at <= t.seenAt) return;
       if (!t) try {
-        t = spawnRemote(), remotes.set(e.id, t), t.zone = e.zone || `claro`, t.pathY = +e.y || 0, t.prog = +e.prog || 0, t.ssj = e.ssj ? 1 : 0, t.wrapper.position.set(x, 0, z)
+        t = spawnRemote(), remotes.set(e.id, t), t.zone = e.zone || `claro`, t.pathY = +e.y || 0, t.prog = +e.prog || 0, t.ssj = e.ssj ? 1 : 0;
+        (t.zone === `serpiente` && snakeGroup) ? snakeGroup.add(t.wrapper) : t.wrapper.position.set(x, 0, z)
       } catch {
         return
       }
@@ -6591,16 +6620,14 @@ function freeMove(e) {
   zone === `serpiente` ? snakeWalk(i, s, speed, e) : meadowWalk(i, s, e), snakeGroup && zone === `serpiente` && (snakeGroup.position.y = -snakeY), Hf.visible = !0, Hf.position.set(Sp, 0, Cp), Hf.rotation.z = 0, lp > 0 ? (lp = Math.max(0, lp - e), lp || sendBeam(0), rm(`fire`)) : (o && faceToward(i, s, e), rm(o ? `run` : `idle`)), Wf.update(e * (goingFast() ? 2.3 : 1)), Xf = Math.min(100, Xf + 14 * e), Yf = freeHp > 66 ? 3 : freeHp > 33 ? 2 : freeHp > 0 ? 1 : 0, zone === `serpiente` && (X(`#questLabel`).textContent = goingFast() ? `CAMINO · SUPER SAIYAN ×4` : `CAMINO DE LA SERPIENTE`), zone === `serpiente` && performance.now() - snakeSaveAt > 2000 && (snakeSaveAt = performance.now(), saveSnake());
   sweepRemotes(), tickProps(e), paintSnakeMeter();
   for (let t of remotes.values()) {
+    dressRemote(t);
     let same = (t.zone || `claro`) === zone;
     if (!same) {
       t.wrapper.visible = !1, t.mixer.update(e);
       continue
     }
     if (zone === `serpiente`) {
-      let p = pointAt(Math.max(0, Math.min(1, +t.prog || 0)));
-      t.wrapper.parent !== snakeGroup && snakeGroup.add(t.wrapper);
-      let far = Math.hypot(t.wrapper.position.x - p.x, t.wrapper.position.z - p.z);
-      far > 6 ? t.wrapper.position.set(p.x, p.y, p.z) : (t.wrapper.position.x = Nt.damp(t.wrapper.position.x, p.x, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, p.z, 8, e), t.wrapper.position.y = p.y), t.wrapper.visible = !0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil);
+      t.wrapper.parent !== snakeGroup && snakeGroup.add(t.wrapper), putRemoteSnake(t, e), t.wrapper.visible = !0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil);
       continue
     }
     t.movedAt && performance.now() - t.movedAt > 280 && (t.targetX = t.wrapper.position.x, t.targetZ = t.wrapper.position.z, t.movedAt = 0), t.wrapper.parent !== df && df.add(t.wrapper), t.wrapper.visible = !0, t.wrapper.position.x = Nt.damp(t.wrapper.position.x, t.targetX, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, t.targetZ, 8, e), t.wrapper.position.y = 0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil)
