@@ -5167,8 +5167,8 @@ var Rf = e => globalThis.RUNNER_ASSETS?.[e] || e,
 try {
   $ = qd(JSON.parse(localStorage.getItem(Ud))), dp = Number(localStorage.getItem(`goku-runner-best`) || 0)
 } catch {}
-var SB_URL = `https://edmlmxzvbclimlnxrylw.supabase.co`,
-  SB_KEY = `sb_publishable_GL6krwK12PmOAby5K3tATA_IAIIlcQ3`,
+var SB_URL = `https://kidaqymftzoyqskkobnw.supabase.co`,
+  SB_KEY = `sb_publishable_Uogn2aiVD930DvKtF8qcHA_IbCxgiUa`,
   freeId = localStorage.getItem(`goku-pid`);
 freeId || (freeId = crypto.randomUUID(), localStorage.setItem(`goku-pid`, freeId));
 var freeHp = 100,
@@ -5904,6 +5904,11 @@ async function connectFree() {
       createClient
     } = await import(`https://esm.sh/@supabase/supabase-js@2`);
     sbClient = createClient(SB_URL, SB_KEY, {
+      auth: {
+        persistSession: !1,
+        autoRefreshToken: !1,
+        detectSessionInUrl: !1
+      },
       realtime: {
         params: {
           eventsPerSecond: 8
