@@ -5296,6 +5296,7 @@ var freeHp = 100,
   snakeLeg = 1,
   pathDir = { x: 0, z: 1 },
   walkForm = `goku`,
+  FORMS = [`goku`, `ssj`, `ssj2`, `ssj3`, `god`, `blue`, `ultra`],
   snakeAskLong = 0,
   snakeLongHint = 0,
   auraBits = [],
@@ -6877,7 +6878,6 @@ function sweepRemotes() {
 }
 
 
-var FORMS = [`goku`, `ssj`, `ssj2`, `ssj3`, `god`, `blue`, `ultra`];
 function formRank(f) {
   let i = FORMS.indexOf(f || `goku`);
   return i < 0 ? 0 : i
