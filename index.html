@@ -5645,16 +5645,19 @@ function yell(rank) {
 }
 function flySound(on) {
   if (!on || !sm) {
-    if (sndFly) { try { sndFly.src.stop(), sndFly.o.stop() } catch {} sndFly = null }
+    if (sndFly) { try { sndFly.stop() } catch {} sndFly = null }
     return
   }
   if (sndFly) return;
   unlockAudio();
   if (!cm) return;
-  let rate = cm.sampleRate, len = rate * 2, buf = cm.createBuffer(1, len, rate), d = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-  let src = cm.createBufferSource(), bp = cm.createBiquadFilter(), g = cm.createGain(), o = cm.createOscillator(), og = cm.createGain();
-  src.buffer = buf, src.loop = !0, bp.type = `bandpass`, bp.frequency.value = 520, bp.Q.value = .65, g.gain.value = .05, o.type = `triangle`, o.frequency.value = 92, og.gain.value = .022, src.connect(bp), bp.connect(g), g.connect(cm.destination), o.connect(og), og.connect(cm.destination), src.start(), o.start(), sndFly = { src, o }
+  let rate = cm.sampleRate, len = rate * 3, buf = cm.createBuffer(1, len, rate), d = buf.getChannelData(0), v = 0;
+  for (let i = 0; i < len; i++) v = v * .985 + (Math.random() * 2 - 1) * .015, d[i] = v;
+  let peak = .0001;
+  for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(d[i]));
+  for (let i = 0; i < len; i++) d[i] /= peak;
+  let src = cm.createBufferSource(), lp = cm.createBiquadFilter(), g = cm.createGain(), lfo = cm.createOscillator(), lg = cm.createGain();
+  src.buffer = buf, src.loop = !0, lp.type = `lowpass`, lp.frequency.value = 180, lp.Q.value = .35, lfo.frequency.value = .18, lg.gain.value = 70, g.gain.value = .028, lfo.connect(lg), lg.connect(lp.frequency), src.connect(lp), lp.connect(g), g.connect(cm.destination), src.start(), lfo.start(), sndFly = { stop() { try { src.stop(), lfo.stop() } catch {} } }
 }
 function lm(e, rank) {
   if (!sm) return;
@@ -5674,7 +5677,7 @@ function lm(e, rank) {
       o.type = `sine`, o.frequency.setValueAtTime(130, t0), o.frequency.exponentialRampToValueAtTime(820, t0 + .7), g.gain.setValueAtTime(.02, t0), g.gain.linearRampToValueAtTime(.08, t0 + .62), g.gain.exponentialRampToValueAtTime(.0001, t0 + .74), o.connect(g), g.connect(cm.destination), o.start(t0), o.stop(t0 + .76);
       return
     }
-    if (e === `fly`) return tone(`triangle`, 260, 70, .28, .06), noise(.3, .05, 540);
+    if (e === `fly`) return noise(.55, .03, 160);
     if (e === `jump`) return tone(`sine`, 260, 760, .18, .07);
     if (e === `hit`) return tone(`sine`, 140, 44, .22, .08);
     if (e === `orb`) return tone(`sine`, 660, 1320, .22, .045)
@@ -6881,14 +6884,16 @@ function giveBalls() {
 function showShen(e) {
   e = e || Date.now();
   if (seenShen === e) return;
-  seenShen = e, shenAt = e, shenUntil = performance.now() + 14000, ensureShen(), shenMesh && (shenMesh.visible = !0, shenMesh.position.set(BOX_X, -8, BOX_Z + 2.4))
+  seenShen = e, shenAt = e, shenUntil = performance.now() + 14000, ensureShen(), shenMesh && (shenMesh.visible = !0, shenMesh.rotation.y = -Math.PI / 2, shenMesh.position.set(BOX_X, -16, BOX_Z + 2.4))
 }
 async function ensureShen() {
   if (shenMesh || shenLoading) return;
   shenLoading = !0;
   try {
-    let e = await zf.loadAsync(Rf(`./models/shenron.glb`)), t = im({ scene: e.scene }, 11);
-    shenMesh = t.wrapper, shenMesh.visible = performance.now() < shenUntil, shenMesh.position.set(BOX_X, shenMesh.visible ? -8 : 0, BOX_Z + 2.4), df.add(shenMesh)
+    let e = await zf.loadAsync(Rf(`./models/shenron.glb`));
+    e.scene.rotation.z = Math.PI / 2;
+    let t = im({ scene: e.scene }, 22);
+    shenMesh = t.wrapper, shenMesh.rotation.y = -Math.PI / 2, shenMesh.visible = performance.now() < shenUntil, shenMesh.position.set(BOX_X, shenMesh.visible ? -16 : 0, BOX_Z + 2.4), df.add(shenMesh)
   } catch (e) {
     console.error(e)
   }
@@ -6898,7 +6903,7 @@ function tickProps(e) {
   let t = Q === `free` && zone === `claro`;
   ballsGroup.visible = boxGroup.visible = t, ballsGroup.children.forEach((e, n) => {
     e.visible = t && !worldTaken[n], e.visible && e.position.set(e.userData.x, (e.userData.y || .85) + Math.sin(fp * 3 + n) * .12, e.userData.z)
-  }), shenMesh && (shenMesh.visible = t && performance.now() < shenUntil, shenMesh.visible && (shenMesh.position.y = Math.min(0, shenMesh.position.y + e * 2.2), shenMesh.rotation.y = Math.sin(fp * .4) * .25));
+  }), shenMesh && (shenMesh.visible = t && performance.now() < shenUntil, shenMesh.visible && (shenMesh.position.y = Math.min(0, shenMesh.position.y + e * 3.2), shenMesh.rotation.y = -Math.PI / 2 + Math.sin(fp * .4) * .12));
   if (!t) return;
   for (let e = 0; e < 7; e++) {
     if (worldTaken[e]) continue;
