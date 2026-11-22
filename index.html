@@ -6247,9 +6247,10 @@ function putRemoteSnake(t, dt) {
   let goal = Math.max(0, Math.min(1, +t.prog || 0)), fy = +t.fly || 0;
   t.flyShown == null ? t.flyShown = fy : t.flyShown += (fy - t.flyShown) * Math.min(1, dt * 6);
   if ((t.leg | 0) === 2 && snake2Pts.length) {
-    t.shown == null || Math.abs(t.shown - goal) > .08 ? t.shown = goal : t.shown += (goal - t.shown) * (1 - Math.exp(-18 * dt));
-    let p = pointOn(snake2Pts, t.shown), side = t.side || 0;
-    t.wrapper.position.set(p.x + p.rx * side, p.y + .26 + t.flyShown, p.z + p.rz * side);
+    let arc = snakeArc2 || 1, gap = t.shown == null ? 99 : Math.abs(t.shown - goal) * arc;
+    t.shown == null || gap > 3.5 ? t.shown = goal : t.shown += (goal - t.shown) * (1 - Math.exp(-22 * dt));
+    let p = pointOn(snake2Pts, t.shown), x = t.px != null ? t.px : p.x + (t.side || 0) * p.rx, z = t.pz != null ? t.pz : p.z + (t.side || 0) * p.rz;
+    t.wrapper.position.set(x, (t.pathY != null ? t.pathY : p.y) + .26 + t.flyShown, z);
     return
   }
   let onPlanet = goal > .9 && planet && Math.hypot((+t.px || 0) - planet.x, (+t.pz || 0) - planet.z) < planet.r;
@@ -6259,9 +6260,10 @@ function putRemoteSnake(t, dt) {
     Math.hypot(t.wrapper.position.x - x, t.wrapper.position.z - z) > 8 ? t.wrapper.position.set(x, y, z) : (t.wrapper.position.x += (x - t.wrapper.position.x) * (1 - Math.exp(-18 * dt)), t.wrapper.position.z += (z - t.wrapper.position.z) * (1 - Math.exp(-18 * dt)), t.wrapper.position.y = y);
     return
   }
-  t.shown == null || Math.abs(t.shown - goal) > .08 ? t.shown = goal : t.shown += (goal - t.shown) * (1 - Math.exp(-18 * dt));
-  let p = pointAt(t.shown), side = t.side || 0;
-  t.wrapper.position.set(p.x + p.rx * side, p.y + .26 + t.flyShown, p.z + p.rz * side)
+  let arc = snakeArc || 1, gap = t.shown == null ? 99 : Math.abs(t.shown - goal) * arc;
+  t.shown == null || gap > 3.5 ? t.shown = goal : t.shown += (goal - t.shown) * (1 - Math.exp(-22 * dt));
+  let p = pointAt(t.shown), x = t.px != null ? t.px : p.x + (t.side || 0) * p.rx, z = t.pz != null ? t.pz : p.z + (t.side || 0) * p.rz;
+  t.wrapper.position.set(x, (t.pathY != null ? t.pathY : p.y) + .26 + t.flyShown, z)
 }
 function hearPlayer(e) {
   if (!e || !e.id || e.id === freeId || Q !== `free`) return;
@@ -6275,9 +6277,14 @@ function hearPlayer(e) {
   }
   if (!at) { if (t.progAt) return } else if (t.progAt && at <= t.progAt) return;
   at && (t.progAt = at), e.zone && (t.zone = e.zone), e.prog != null && (t.prog = +e.prog || 0), e.y != null && (t.pathY = +e.y || 0), e.fy != null && (t.fly = +e.fy || 0), e.form && (t.formName = String(e.form)), e.leg != null && (t.leg = e.leg | 0), e.ssj != null && (t.ssj = e.ssj ? 1 : 0), e.rot != null && (t.rot = +e.rot || 0), e.name && (t.name = String(e.name).slice(0, 24)), e.level != null && (t.level = Number(e.level) || 0), e.held != null && (t.held = Number(e.held) || 0), t.freshAt = performance.now();
-  if ((t.zone || `claro`) === `serpiente` && e.x != null && e.z != null) {
-    let n = pointOn((t.leg | 0) === 2 ? snake2Pts : snakePts, Math.max(0, Math.min(1, +t.prog || 0)));
-    t.px = +e.x || 0, t.pz = +e.z || 0, t.side = Nt.clamp((t.px - n.x) * n.rx + (t.pz - n.z) * n.rz, -3.1, 3.1), t.pathY = n.y, t.movedAt = t.freshAt
+  if (e.x != null && e.z != null) {
+    let x = +e.x || 0, z = +e.z || 0;
+    if ((t.zone || `claro`) === `serpiente`) {
+      if (e.at || !t.seenAt) {
+        let n = pointOn((t.leg | 0) === 2 ? snake2Pts : snakePts, Math.max(0, Math.min(1, +t.prog || 0)));
+        t.px = x, t.pz = z, t.side = Nt.clamp((x - n.x) * n.rx + (z - n.z) * n.rz, -3.1, 3.1), t.pathY = +e.y || n.y, t.movedAt = t.freshAt
+      }
+    } else if (!t.seenAt) t.targetX = x, t.targetZ = z, t.wrapper.position.set(x, +e.fy || 0, z)
   }
 }
 function syncPresence() {
@@ -6378,7 +6385,7 @@ async function connectFree() {
       if (t && t.seenAt && e.at <= t.seenAt) return;
       if (!t) try {
         t = spawnRemote(), remotes.set(e.id, t), t.zone = e.zone || `claro`, t.pathY = +e.y || 0, t.prog = +e.prog || 0, t.ssj = e.ssj ? 1 : 0;
-        (t.zone === `serpiente` && snakeGroup) ? snakeGroup.add(t.wrapper) : t.wrapper.position.set(x, 0, z)
+        t.targetX = x, t.targetZ = z, (t.zone === `serpiente` && snakeGroup) ? snakeGroup.add(t.wrapper) : t.wrapper.position.set(x, +e.fy || 0, z)
       } catch {
         return
       }
@@ -7376,7 +7383,7 @@ function freeMove(e) {
       t.wrapper.parent !== snakeGroup && snakeGroup.add(t.wrapper), putRemoteSnake(t, e), t.wrapper.visible = !0, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil);
       continue
     }
-    t.movedAt && performance.now() - t.movedAt > 280 && (t.targetX = t.wrapper.position.x, t.targetZ = t.wrapper.position.z, t.movedAt = 0), t.wrapper.parent !== df && df.add(t.wrapper), t.wrapper.visible = !0, t.wrapper.position.x = Nt.damp(t.wrapper.position.x, t.targetX, 8, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, t.targetZ, 8, e), t.flyShown = t.flyShown == null ? +t.fly || 0 : t.flyShown + ((+t.fly || 0) - t.flyShown) * Math.min(1, e * 6), t.wrapper.position.y = t.flyShown, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil)
+    t.wrapper.parent !== df && df.add(t.wrapper), t.wrapper.visible = !0, (t.wrapper.position.x - t.targetX) ** 2 + (t.wrapper.position.z - t.targetZ) ** 2 > 2.25 ? (t.wrapper.position.x = t.targetX, t.wrapper.position.z = t.targetZ) : (t.wrapper.position.x = Nt.damp(t.wrapper.position.x, t.targetX, 18, e), t.wrapper.position.z = Nt.damp(t.wrapper.position.z, t.targetZ, 18, e)), t.flyShown = t.flyShown == null ? +t.fly || 0 : t.flyShown + ((+t.fly || 0) - t.flyShown) * Math.min(1, e * 6), t.wrapper.position.y = t.flyShown, t.wrapper.rotation.y = t.rot || 0, t.mixer.update(e), t.beam.visible = t.beamUntil > performance.now(), paintTag(t), paintSay(t.bubble, t.say, t.sayUntil)
   }
   let a = performance.now();
   if (a < beamUntil && freeCh && (freeHitAcc += e) > .12) {
@@ -7399,7 +7406,7 @@ function freeMove(e) {
       })
     }
   }
-  a - freeSendAt > 200 && (freeSendAt = a, sendMove()), placeFreeCam(e), stickMine(), um()
+  a - freeSendAt > 100 && (freeSendAt = a, sendMove()), placeFreeCam(e), stickMine(), um()
 }
 
 X(`#chatBar`).addEventListener(`submit`, e => {
